@@ -7,66 +7,312 @@
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-<div id="app">Cargando...</div>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<div id="app"></div>
 <script>
-const {useState,useEffect}=React;
-function App(){
-const[user,setUser]=useState(null);
-const[users,setUsers]=useState([{id:1,username:'admin',password:'admin123',role:'admin',name:'Admin'}]);
-const[view,setView]=useState('login');
-useEffect(()=>{
-const saved=localStorage.getItem('gfUsers');
-if(saved)setUsers(JSON.parse(saved));
-},[]);
-const saveUsers=()=>localStorage.setItem('gfUsers',JSON.stringify(users));
-const handleLogin=(e)=>{
+let S={u:null,us:[{id:1,username:'admin',password:'admin123',role:'admin',name:'Administrador'}],tm:{},cd:{},rc:[],ac:[],cm:[],v:'login'};
+let ti=null;
+
+function sv(){localStorage.setItem('gfd',JSON.stringify({us:S.us,rc:S.rc,ac:S.ac,cm:S.cm}))}
+function ld(){try{let d=JSON.parse(localStorage.getItem('gfd'));if(d){S.us=d.us||S.us;S.rc=d.rc||[];S.ac=d.ac||[];S.cm=d.cm||[]}}catch(e){}}
+function fmt(s){let h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`}
+
+function login(e){
 e.preventDefault();
-const u=e.target.username.value;
-const p=e.target.password.value;
-const found=users.find(x=>x.username===u&&x.password===p);
-if(found){
-setUser(found);
-setView(found.role==='admin'?'admin':found.role==='alto'?'alto':'bajo');
-}else alert('Credenciales incorrectas');
-};
-const logout=()=>{setUser(null);setView('login')};
-if(view==='login')return React.createElement('div',{className:'min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4'},
-React.createElement('div',{className:'bg-white rounded-xl shadow-2xl p-8 w-full max-w-md'},
-React.createElement('h1',{className:'text-4xl font-bold text-blue-900 text-center mb-2'},'GestorFederal'),
-React.createElement('p',{className:'text-gray-600 text-center mb-6'},'Sistema de Control de Tiempos'),
-React.createElement('form',{onSubmit:handleLogin,className:'space-y-4'},
-React.createElement('input',{type:'text',name:'username',placeholder:'Usuario',required:true,className:'w-full px-4 py-3 border rounded-lg'}),
-React.createElement('input',{type:'password',name:'password',placeholder:'Contraseña',required:true,className:'w-full px-4 py-3 border rounded-lg'}),
-React.createElement('button',{type:'submit',className:'w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-medium'},'Ingresar')
-),
-React.createElement('div',{className:'mt-4 p-3 bg-gray-50 rounded text-sm'},
-React.createElement('p',{className:'font-medium'},'Prueba: admin / admin123')
-)
-)
-);
-return React.createElement('div',{className:'min-h-screen bg-gray-100'},
-React.createElement('nav',{className:'bg-blue-900 text-white p-4'},
-React.createElement('div',{className:'container mx-auto flex justify-between'},
-React.createElement('h1',{className:'text-xl font-bold'},`GestorFederal - ${user.name}`),
-React.createElement('button',{onClick:logout,className:'bg-blue-700 px-4 py-2 rounded hover:bg-blue-600'},'Salir')
-)
-),
-React.createElement('div',{className:'container mx-auto p-8'},
-React.createElement('div',{className:'bg-white rounded-lg shadow p-8'},
-React.createElement('h2',{className:'text-3xl font-bold text-green-600 mb-4'},'✅ Sistema Funcionando'),
-React.createElement('p',{className:'text-xl mb-2'},'Bienvenido: ',React.createElement('strong',null,user.name)),
-React.createElement('p',{className:'text-gray-600'},'Rol: ',React.createElement('strong',null,user.role)),
-React.createElement('div',{className:'mt-6 p-4 bg-blue-50 rounded'},
-React.createElement('p',{className:'text-sm text-gray-700'},'El sistema base está funcionando correctamente.'),
-React.createElement('p',{className:'text-sm text-gray-700 mt-2'},'Todas las funcionalidades avanzadas están siendo desarrolladas.')
-)
-)
-)
-)
+let u=document.getElementById('u').value,p=document.getElementById('p').value;
+let user=S.us.find(x=>x.username===u&&x.password===p);
+if(user){S.u=user;S.v=user.role==='admin'?'admin':user.role==='alto'?'alto':'bajo';r();sti()}
+else alert('Credenciales incorrectas')
 }
-ReactDOM.render(React.createElement(App),document.getElementById('app'));
+
+function logout(){S.u=null;S.v='login';stpi();r()}
+
+function sti(){
+if(ti)return;
+ti=setInterval(()=>{
+let h=false;
+Object.keys(S.tm).forEach(uid=>{if(S.tm[uid].r){S.tm[uid].e++;h=true}});
+if(h){document.querySelectorAll('.tm').forEach(el=>{let uid=el.dataset.uid;if(S.tm[uid])el.textContent=fmt(S.tm[uid].e)})}
+},1000)
+}
+
+function stpi(){if(ti){clearInterval(ti);ti=null}}
+
+function gc(){
+let c=Math.random().toString(36).substring(2,8).toUpperCase();
+S.cd[c]={ai:S.u.id,an:S.u.name};
+alert('Código: '+c);r()
+}
+
+function st(){
+let c=document.getElementById('cd').value.toUpperCase();
+if(!S.cd[c]){alert('Código inválido');return}
+S.tm[S.u.id]={e:0,r:true,ai:S.cd[c].ai,an:S.cd[c].an};
+r()
+}
+
+function stp(){
+let t=S.tm[S.u.id];
+if(t){
+let m=Math.floor(t.e/60),h=Math.floor(m/60);
+S.rc.push({id:S.rc.length+1,uid:S.u.id,un:S.u.name,ai:t.ai,an:t.an,h:h,m:m%60,d:new Date().toISOString()});
+delete S.tm[S.u.id];sv();alert(`Registrado: ${h}h ${m%60}m`);r()
+}
+}
+
+function stpu(uid){
+let t=S.tm[uid];
+if(t){
+let m=Math.floor(t.e/60),h=Math.floor(m/60),u=S.us.find(x=>x.id===uid);
+S.rc.push({id:S.rc.length+1,uid:uid,un:u.name,ai:t.ai,an:t.an,h:h,m:m%60,d:new Date().toISOString()});
+delete S.tm[uid];sv();alert(`Detenido: ${u.name} ${h}h ${m%60}m`);r()
+}
+}
+
+function au(e){
+e.preventDefault();
+let n=document.getElementById('un').value,u=document.getElementById('uu').value,p=document.getElementById('up').value,ro=document.getElementById('ur').value;
+if(S.us.find(x=>x.username===u)){alert('Usuario existe');return}
+S.us.push({id:S.us.length+1,username:u,password:p,role:ro,name:n});sv();alert('Usuario creado');r()
+}
+
+function aa(e){
+e.preventDefault();
+let uid=parseInt(document.getElementById('auid').value),mot=document.getElementById('amot').value,u=S.us.find(x=>x.id===uid);
+S.ac.push({id:S.ac.length+1,uid:uid,un:u.name,mot:mot,by:S.u.name,d:new Date().toISOString()});
+sv();alert('Acta creada');r()
+}
+
+function acm(e){
+e.preventDefault();
+if(S.cm.length>=10){alert('Máximo 10');return}
+let t=document.getElementById('cmt').value,c=document.getElementById('cmc').value,urg=document.getElementById('cmu').checked;
+S.cm.push({id:S.cm.length+1,t:t,c:c,urg:urg,by:S.u.name,d:new Date().toISOString()});
+sv();alert('Comunicado creado');r()
+}
+
+function dcm(id){S.cm=S.cm.filter(x=>x.id!==id);sv();r()}
+
+function r(){
+let a=document.getElementById('app');
+if(S.v==='login'){
+a.innerHTML=`<div class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4">
+<div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+<h1 class="text-4xl font-bold text-blue-900 text-center mb-2">GestorFederal</h1>
+<p class="text-gray-600 text-center mb-6">Sistema de Control de Tiempos</p>
+<form onsubmit="login(event)" class="space-y-4">
+<input type="text" id="u" placeholder="Usuario" required class="w-full px-4 py-3 border rounded-lg">
+<input type="password" id="p" placeholder="Contraseña" required class="w-full px-4 py-3 border rounded-lg">
+<button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Ingresar</button>
+</form>
+<div class="mt-4 p-3 bg-gray-50 rounded text-sm"><p>Prueba: <b>admin / admin123</b></p></div>
+</div></div>`
+}else if(S.v==='admin'){
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-900 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">GestorFederal - Admin</h1>
+<button onclick="logout()" class="bg-blue-700 px-4 py-2 rounded">Salir</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<button onclick="S.v='users';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">👥 Usuarios</h3></button>
+<button onclick="S.v='actas';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">📄 Actas</h3></button>
+<button onclick="S.v='bit';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">🏆 Bitácora</h3></button>
+<button onclick="S.v='coms';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">📢 Comunicados</h3></button>
+</div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-2xl font-bold mb-4">Estadísticas</h2>
+<div class="grid grid-cols-3 gap-4">
+<div class="bg-blue-50 p-4 rounded"><p class="text-sm">Usuarios</p><p class="text-3xl font-bold text-blue-600">${S.us.length}</p></div>
+<div class="bg-green-50 p-4 rounded"><p class="text-sm">Registros</p><p class="text-3xl font-bold text-green-600">${S.rc.length}</p></div>
+<div class="bg-purple-50 p-4 rounded"><p class="text-sm">Actas</p><p class="text-3xl font-bold text-purple-600">${S.ac.length}</p></div>
+</div></div></div></div>`
+}else if(S.v==='users'){
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-900 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">Usuarios</h1>
+<button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+<h2 class="text-xl font-bold mb-4">Crear Usuario</h2>
+<form onsubmit="au(event)" class="grid grid-cols-2 gap-4">
+<input type="text" id="un" placeholder="Nombre" required class="px-4 py-2 border rounded">
+<input type="text" id="uu" placeholder="Usuario" required class="px-4 py-2 border rounded">
+<input type="password" id="up" placeholder="Contraseña" required class="px-4 py-2 border rounded">
+<select id="ur" class="px-4 py-2 border rounded">
+<option value="bajo">Cargo Bajo</option>
+<option value="alto">Cargo Alto</option>
+<option value="admin">Admin</option>
+</select>
+<button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded">Crear</button>
+</form></div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">Lista</h2>
+<table class="w-full">
+<thead class="bg-gray-50"><tr>
+<th class="px-4 py-2 text-left">Nombre</th>
+<th class="px-4 py-2 text-left">Usuario</th>
+<th class="px-4 py-2 text-left">Rol</th>
+<th class="px-4 py-2 text-left">Password</th>
+</tr></thead>
+<tbody>${S.us.map(u=>`<tr class="border-t">
+<td class="px-4 py-2">${u.name}</td>
+<td class="px-4 py-2">${u.username}</td>
+<td class="px-4 py-2"><span class="px-2 py-1 text-xs rounded bg-blue-100">${u.role}</span></td>
+<td class="px-4 py-2">${u.password}</td>
+</tr>`).join('')}</tbody>
+</table></div></div></div>`
+}else if(S.v==='actas'){
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-900 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">Actas</h1>
+<button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+<h2 class="text-xl font-bold mb-4">Crear Acta</h2>
+<form onsubmit="aa(event)" class="space-y-4">
+<select id="auid" class="w-full px-4 py-2 border rounded" required>
+<option value="">Seleccionar trabajador</option>
+${S.us.filter(u=>u.role!=='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}
+</select>
+<textarea id="amot" placeholder="Motivo" class="w-full px-4 py-2 border rounded h-32" required></textarea>
+<button type="submit" class="bg-red-600 text-white px-6 py-2 rounded">Crear</button>
+</form></div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">Actas Registradas</h2>
+${S.ac.length===0?'<p class="text-gray-500 text-center py-4">Sin actas</p>':S.ac.map(ac=>`<div class="border rounded p-4 mb-4 bg-red-50">
+<h3 class="font-bold">${ac.un}</h3>
+<p class="text-sm text-gray-600">Por: ${ac.by} • ${new Date(ac.d).toLocaleDateString()}</p>
+<p class="mt-2">${ac.mot}</p>
+</div>`).join('')}
+</div></div></div>`
+}else if(S.v==='bit'){
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-900 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">Bitácora</h1>
+<button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">Registros de Tiempo</h2>
+<table class="w-full">
+<thead class="bg-gray-50"><tr>
+<th class="px-3 py-2 text-left">Fecha</th>
+<th class="px-3 py-2 text-left">Trabajador</th>
+<th class="px-3 py-2 text-left">Cargo Alto</th>
+<th class="px-3 py-2 text-left">Tiempo</th>
+</tr></thead>
+<tbody>${S.rc.length===0?'<tr><td colspan="4" class="px-3 py-8 text-center text-gray-500">Sin registros</td></tr>':S.rc.map(r=>`<tr class="border-t">
+<td class="px-3 py-2">${new Date(r.d).toLocaleString()}</td>
+<td class="px-3 py-2">${r.un}</td>
+<td class="px-3 py-2">${r.an}</td>
+<td class="px-3 py-2 font-medium">${r.h}h ${r.m}m</td>
+</tr>`).join('')}</tbody>
+</table></div></div></div>`
+}else if(S.v==='coms'){
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-900 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">Comunicados (${S.cm.length}/10)</h1>
+<button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+<h2 class="text-xl font-bold mb-4">Crear</h2>
+<form onsubmit="acm(event)" class="space-y-4">
+<input type="text" id="cmt" placeholder="Título" required class="w-full px-4 py-2 border rounded">
+<textarea id="cmc" placeholder="Contenido" class="w-full px-4 py-2 border rounded h-32" required></textarea>
+<label class="flex items-center gap-2"><input type="checkbox" id="cmu" class="w-4 h-4"><span>Urgente</span></label>
+<button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">Publicar</button>
+</form></div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">Activos</h2>
+${S.cm.length===0?'<p class="text-gray-500 text-center py-4">Sin comunicados</p>':S.cm.map(c=>`<div class="border rounded p-4 mb-4 ${c.urg?'bg-red-50':'bg-gray-50'}">
+<div class="flex justify-between items-start">
+<div class="flex-1">
+<h3 class="font-bold">${c.t} ${c.urg?'<span class="bg-red-500 text-white text-xs px-2 py-1 rounded ml-2">URGENTE</span>':''}</h3>
+<p class="text-sm text-gray-600">${c.by} • ${new Date(c.d).toLocaleDateString()}</p>
+</div>
+<button onclick="dcm(${c.id})" class="text-red-600">🗑️</button>
+</div>
+<p class="mt-2">${c.c}</p>
+</div>`).join('')}
+</div></div></div>`
+}else if(S.v==='bajo'){
+let t=S.tm[S.u.id],mr=S.rc.filter(r=>r.uid===S.u.id);
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-green-700 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">${S.u.name}</h1>
+<button onclick="logout()" class="bg-green-600 px-4 py-2 rounded">Salir</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+<h2 class="text-2xl font-bold mb-4">⏱️ Control de Tiempo</h2>
+${!t?`<div class="space-y-4">
+<p>Solicita código a tu supervisor:</p>
+<div class="flex gap-2">
+<input type="text" id="cd" placeholder="CÓDIGO" class="flex-1 px-4 py-3 border-2 rounded-lg uppercase font-mono">
+<button onclick="st()" class="bg-green-600 text-white px-6 py-3 rounded-lg">▶️ Iniciar</button>
+</div></div>`:`<div class="space-y-4">
+<div class="bg-green-50 p-6 rounded-lg text-center border-2 border-green-200">
+<p class="text-sm mb-2">Tiempo Actual</p>
+<p class="text-5xl font-bold text-green-700 mb-2 tm" data-uid="${S.u.id}">${fmt(t.e)}</p>
+<p class="text-sm">Supervisor: <strong>${t.an}</strong></p>
+</div>
+<button onclick="stp()" class="w-full bg-red-600 text-white py-3 rounded-lg">⏹️ Detener</button>
+</div>`}
+</div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">📊 Historial</h2>
+<table class="w-full">
+<thead class="bg-gray-50"><tr>
+<th class="px-4 py-2 text-left">Fecha</th>
+<th class="px-4 py-2 text-left">Tiempo</th>
+<th class="px-4 py-2 text-left">Supervisor</th>
+</tr></thead>
+<tbody>${mr.length===0?'<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Sin registros</td></tr>':mr.map(r=>`<tr class="border-t">
+<td class="px-4 py-3">${new Date(r.d).toLocaleString()}</td>
+<td class="px-4 py-3 font-medium text-green-700">${r.h}h ${r.m}m</td>
+<td class="px-4 py-3">${r.an}</td>
+</tr>`).join('')}</tbody>
+</table></div></div></div>`
+}else if(S.v==='alto'){
+let act=Object.entries(S.tm).map(([uid,t])=>{let u=S.us.find(x=>x.id===parseInt(uid));return{...t,uid:parseInt(uid),un:u?.name}});
+a.innerHTML=`<div class="min-h-screen bg-gray-100">
+<nav class="bg-blue-700 text-white p-4">
+<div class="container mx-auto flex justify-between">
+<h1 class="text-xl font-bold">Cargo Alto - ${S.u.name}</h1>
+<button onclick="logout()" class="bg-blue-600 px-4 py-2 rounded">Salir</button>
+</div></nav>
+<div class="container mx-auto p-4">
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+<h2 class="text-xl font-bold mb-4">🔑 Códigos</h2>
+<button onclick="gc()" class="w-full bg-blue-600 text-white py-3 rounded-lg mb-4">➕ Generar Código</button>
+<div class="space-y-2">
+${Object.entries(S.cd).filter(([c,d])=>d.ai===S.u.id).map(([c])=>`<div class="bg-blue-50 p-3 rounded border">
+<span class="font-mono font-bold text-xl">${c}</span>
+</div>`).join('')||'<p class="text-gray-500 text-sm">Sin códigos</p>'}
+</div></div>
+<div class="bg-white rounded-lg shadow p-6">
+<h2 class="text-xl font-bold mb-4">👥 Trabajadores Activos</h2>
+${act.length===0?'<p class="text-gray-500 text-center py-8">No hay trabajadores activos</p>':`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+${act.map(a=>`<div class="border-2 rounded-lg p-4 bg-green-50">
+<h3 class="font-bold text-lg mb-2">${a.un}</h3>
+<p class="text-4xl font-bold text-green-700 mb-2 tm" data-uid="${a.uid}">${fmt(a.e)}</p>
+<button onclick="stpu(${a.uid})" class="w-full bg-red-600 text-white py-2 rounded">⏹️ Detener</button>
+</div>`).join('')}
+</div>`}
+</div></div></div>`
+}
+}
+
+ld();r();
 </script>
 </body>
 </html>
