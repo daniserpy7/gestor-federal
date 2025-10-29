@@ -1,4 +1,501 @@
-<!DOCTYPE html>
+                                       <tr class="border-t">
+                                                <td class="px-4 py-2">${getStatusBadge(u.id)}</td>
+                                                <td class="px-4 py-2">${u.name}</td>
+                                                <td class="px-4 py-2">${u.username}</td>
+                                                <td class="px-4 py-2">
+                                                    <span class="px-2 py-1 text-xs rounded ${
+                                                        u.role==='admin'?'bg-red-100 text-red-800':
+                                                        u.role==='alto'?'bg-blue-100 text-blue-800':
+                                                        'bg-green-100 text-green-800'
+                                                    }">
+                                                        ${u.role==='admin'?'Admin':u.role==='alto'?'Cargo Alto':'Cargo Bajo'}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2">${u.password}</td>
+                                                <td class="px-4 py-2">
+                                                    <button onclick="editUser(${u.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">✏️ Editar</button>
+                                                </td>
+                                            </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'actas') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-900 text-white p-4">
+                            <div class="container mx-auto flex justify-between">
+                                <h1 class="text-xl font-bold">Actas Administrativas</h1>
+                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            ${state.editingActa ? `
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6 rounded-lg">
+                                <h2 class="text-xl font-bold mb-4">✏️ Editando Acta</h2>
+                                <form onsubmit="saveActa(event)" class="space-y-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600 mb-2">Trabajador: <strong>${state.editingActa.uname}</strong></p>
+                                        <p class="text-sm text-gray-600 mb-2">Creada por: ${state.editingActa.by}</p>
+                                    </div>
+                                    <textarea id="editMot" class="w-full px-4 py-2 border rounded h-32" required>${state.editingActa.mot}</textarea>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">💾 Guardar</button>
+                                        <button type="button" onclick="cancelEdit()" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">❌ Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                            ` : `
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Crear Acta Administrativa</h2>
+                                <form onsubmit="addActa(event)" class="space-y-4">
+                                    <select id="au" class="w-full px-4 py-2 border rounded" required>
+                                        <option value="">Seleccionar trabajador</option>
+                                        ${state.users.filter(u => u.role !== 'admin').map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+                                    </select>
+                                    <textarea id="am" placeholder="Motivo del acta" class="w-full px-4 py-2 border rounded h-32" required></textarea>
+                                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">Crear Acta</button>
+                                </form>
+                            </div>
+                            `}
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">Actas Registradas</h2>
+                                ${state.actas.length === 0 ? '<p class="text-gray-500 text-center py-4">Sin actas</p>' :
+                                state.actas.map(a => `
+                                <div class="border rounded p-4 mb-4 bg-red-50">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-lg">${a.uname}</h3>
+                                            <p class="text-sm text-gray-600">Por: ${a.by} (${a.byRole==='admin'?'Admin':'Cargo Alto'}) • ${new Date(a.date).toLocaleString()}</p>
+                                            ${a.edited ? `<p class="text-xs text-gray-500 mt-1">✏️ Editada por ${a.editedBy} el ${new Date(a.editedDate).toLocaleString()}</p>` : ''}
+                                        </div>
+                                        <button onclick="editActa(${a.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">✏️ Editar</button>
+                                    </div>
+                                    <p class="text-gray-800 mt-2">${a.mot}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'bit') {
+                const stats = calcStats();
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-900 text-white p-4">
+                            <div class="container mx-auto flex justify-between">
+                                <h1 class="text-xl font-bold">Bitácora Cargos Altos</h1>
+                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Horas Completas por Cargo Alto</h2>
+                                <p class="text-sm text-gray-600 mb-4">Solo se cuentan horas completas. Los minutos sobrantes se acumulan.</p>
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left">Cargo Alto</th>
+                                            <th class="px-4 py-2 text-left">Horas Completas</th>
+                                            <th class="px-4 py-2 text-left">Min. Pendientes</th>
+                                            <th class="px-4 py-2 text-left">Total Supervisado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${stats.length === 0 ? '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Sin datos</td></tr>' :
+                                        stats.map(s => `
+                                        <tr class="border-t">
+                                            <td class="px-4 py-3 font-medium">${s.name}</td>
+                                            <td class="px-4 py-3"><span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">${s.comp}h</span></td>
+                                            <td class="px-4 py-3 text-gray-600">${s.pend} min</td>
+                                            <td class="px-4 py-3 text-gray-600">${Math.floor(s.tot/60)}h ${s.tot%60}m</td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">Registros de Tiempo</h2>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left">Fecha</th>
+                                                <th class="px-3 py-2 text-left">Trabajador</th>
+                                                <th class="px-3 py-2 text-left">Cargo Alto</th>
+                                                <th class="px-3 py-2 text-left">Tiempo</th>
+                                                <th class="px-3 py-2 text-left">Tipo</th>
+                                                <th class="px-3 py-2 text-left">Detenido por</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${state.records.length === 0 ? '<tr><td colspan="6" class="px-3 py-8 text-center text-gray-500">Sin registros</td></tr>' :
+                                            state.records.map(r => `
+                                            <tr class="border-t">
+                                                <td class="px-3 py-2">${new Date(r.date).toLocaleString()}</td>
+                                                <td class="px-3 py-2">${r.userName}</td>
+                                                <td class="px-3 py-2">${r.altoName}</td>
+                                                <td class="px-3 py-2 font-medium">${r.h}h ${r.m}m ${r.s}s</td>
+                                                <td class="px-3 py-2">
+                                                    <span class="text-xs px-2 py-1 rounded ${r.manual?'bg-yellow-100 text-yellow-800':'bg-blue-100 text-blue-800'}">
+                                                        ${r.manual?'Manual':'Auto'}
+                                                    </span>
+                                                </td>
+                                                <td class="px-3 py-2 text-xs">${r.stoppedBy || '-'}</td>
+                                            </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'coms') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-900 text-white p-4">
+                            <div class="container mx-auto flex justify-between">
+                                <h1 class="text-xl font-bold">Comunicados (${state.coms.length}/10)</h1>
+                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Crear Comunicado</h2>
+                                <form onsubmit="addCom(event)" class="space-y-4">
+                                    <input type="text" id="ct" placeholder="Título del comunicado" required class="w-full px-4 py-2 border rounded">
+                                    <textarea id="cc" placeholder="Contenido del comunicado" class="w-full px-4 py-2 border rounded h-32" required></textarea>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" id="cu" class="w-4 h-4">
+                                        <span>Marcar como urgente</span>
+                                    </label>
+                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700" ${state.coms.length >= 10 ? 'disabled' : ''}>Publicar</button>
+                                </form>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">Comunicados Activos</h2>
+                                ${state.coms.length === 0 ? '<p class="text-gray-500 text-center py-4">Sin comunicados</p>' :
+                                state.coms.map(c => `
+                                <div class="border rounded p-4 mb-4 ${c.urg ? 'bg-red-50 border-red-300' : 'bg-gray-50'}">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <h3 class="font-bold text-lg">${c.tit}</h3>
+                                                ${c.urg ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded">URGENTE</span>' : ''}
+                                            </div>
+                                            <p class="text-sm text-gray-600">Por: ${c.by} • ${new Date(c.date).toLocaleString()}</p>
+                                        </div>
+                                        <button onclick="delCom(${c.id})" class="text-red-600 hover:text-red-800 text-xl">🗑️</button>
+                                    </div>
+                                    <p class="text-gray-800 mt-2">${c.con}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'team') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-900 text-white p-4">
+                            <div class="container mx-auto flex justify-between">
+                                <h1 class="text-xl font-bold">🎮 Nuestro Equipo Oficial</h1>
+                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+                                <p class="font-bold text-yellow-800">⚠️ Advertencia Importante</p>
+                                <p class="text-sm text-yellow-700">Este es el ÚNICO equipo oficial. Cualquier persona que no aparezca aquí NO es parte de nuestra organización.</p>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Agregar Miembro del Equipo</h2>
+                                <form onsubmit="addTeamMember(event)" class="grid grid-cols-3 gap-4">
+                                    <input type="text" id="teamName" placeholder="Nombre en el juego" required class="px-4 py-2 border rounded">
+                                    <input type="text" id="teamAvatar" placeholder="Avatar/Emoji" required class="px-4 py-2 border rounded">
+                                    <input type="text" id="teamDesc" placeholder="Cargo" required class="px-4 py-2 border rounded">
+                                    <button type="submit" class="col-span-3 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Agregar al Equipo</button>
+                                </form>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">Equipo Oficial Verificado ✅</h2>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    ${state.team.map((m, idx) => `
+                                    <div class="border-2 border-green-500 rounded-lg p-6 bg-green-50 text-center relative">
+                                        <button onclick="delTeamMember(${idx})" class="absolute top-2 right-2 text-red-600 hover:text-red-800">🗑️</button>
+                                        <div class="text-6xl mb-3">${m.avatar}</div>
+                                        <h3 class="font-bold text-xl mb-1">${m.name}</h3>
+                                        <p class="text-sm text-gray-600">${m.desc}</p>
+                                        <div class="mt-3">
+                                            <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full">✅ VERIFICADO</span>
+                                        </div>
+                                    </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'bajo') {
+                const t = state.timers[state.user.id];
+                const myRecs = state.records.filter(r => r.userId === state.user.id);
+                const myActas = state.actas.filter(a => a.uid === state.user.id);
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-green-700 text-white p-4">
+                            <div class="container mx-auto flex justify-between items-center">
+                                <h1 class="text-xl font-bold">GestorFederal - ${state.user.name}</h1>
+                                <div class="flex gap-2">
+                                    <button onclick="state.changingPassword=true;render()" class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">🔑</button>
+                                    <button onclick="logout()" class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">Salir</button>
+                                </div>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            ${state.changingPassword ? `
+                            <div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto mb-6">
+                                <h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2>
+                                <form onsubmit="changePassword(event)" class="space-y-4">
+                                    <input type="password" id="currentPass" placeholder="Contraseña actual" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="newPass" placeholder="Nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="confirmPass" placeholder="Confirmar nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">Guardar</button>
+                                        <button type="button" onclick="state.changingPassword=false;render()" class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                            ` : ''}
+                            ${state.coms.length > 0 ? `
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
+                                <h3 class="font-bold text-blue-800 mb-2">📢 Comunicados</h3>
+                                ${state.coms.map(c => `
+                                <div class="mb-2 p-3 rounded ${c.urg?'bg-red-100':'bg-white'}">
+                                    <p class="font-medium">${c.tit}</p>
+                                    <p class="text-sm text-gray-700">${c.con}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                            ` : ''}
+                            ${myActas.length > 0 ? `
+                            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded">
+                                <h3 class="font-bold text-red-800 mb-2">⚠️ Tienes ${myActas.length} acta(s)</h3>
+                                ${myActas.slice(0,2).map(a => `
+                                <div class="bg-white p-2 rounded mb-2">
+                                    <p class="text-sm font-medium">Motivo: ${a.mot}</p>
+                                    <p class="text-xs text-gray-600">Fecha: ${new Date(a.date).toLocaleDateString()}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                            ` : ''}
+                            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                                <h2 class="text-2xl font-bold mb-4">⏱️ Control de Tiempo</h2>
+                                ${!t ? `
+                                <div class="space-y-4">
+                                    <p class="text-gray-700">Solicita un código de autorización a tu supervisor:</p>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="code" placeholder="CÓDIGO" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-lg uppercase font-mono focus:border-green-500 focus:outline-none">
+                                        <button onclick="startTimer()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium">▶️ Iniciar</button>
+                                    </div>
+                                    <p class="text-xs text-gray-500">⏱️ Los códigos expiran en 2 minutos</p>
+                                </div>
+                                ` : `
+                                <div class="space-y-4">
+                                    <div class="bg-green-50 p-6 rounded-lg text-center border-2 border-green-200">
+                                        <p class="text-sm text-gray-600 mb-2">Tiempo Actual</p>
+                                        <p class="text-5xl font-bold text-green-700 mb-2 timer-display" data-user-id="${state.user.id}">${fmt(t.elapsed)}</p>
+                                        <p class="text-sm text-gray-700">Supervisado por: <strong>${t.altoName}</strong></p>
+                                        <p class="text-xs text-gray-500 mt-1">${t.running ? '🟢 Corriendo' : '⏸️ Pausado'}</p>
+                                    </div>
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                        <p class="text-sm text-yellow-800">⚠️ Solo tu supervisor puede detener tu tiempo</p>
+                                    </div>
+                                </div>
+                                `}
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">📊 Mi Historial</h2>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left">Fecha</th>
+                                                <th class="px-4 py-2 text-left">Tiempo</th>
+                                                <th class="px-4 py-2 text-left">Supervisor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${myRecs.length === 0 ? '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Sin registros</td></tr>' :
+                                            myRecs.map(r => `
+                                            <tr class="border-t">
+                                                <td class="px-4 py-3">${new Date(r.date).toLocaleString()}</td>
+                                                <td class="px-4 py-3 font-medium text-green-700">${r.h}h ${r.m}m ${r.s}s</td>
+                                                <td class="px-4 py-3">${r.altoName}</td>
+                                            </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'alto') {
+                const activos = Object.entries(state.timers).map(([uid, t]) => {
+                    const u = state.users.find(x => x.id === parseInt(uid));
+                    return {...t, uid: parseInt(uid), uname: u?.name};
+                });
+                const myCodes = Object.entries(state.codes).filter(([c, d]) => d.altoId === state.user.id && !d.used);
+                const myAdminCodes = Object.entries(state.adminCodes).filter(([c, d]) => !d.used);
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-700 text-white p-4">
+                            <div class="container mx-auto flex justify-between items-center">
+                                <h1 class="text-xl font-bold">Cargo Alto - ${state.user.name}</h1>
+                                <div class="flex gap-2">
+                                    <button onclick="state.view='alto-actas';render()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">📄 Actas</button>
+                                    <button onclick="state.changingPassword=true;render()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">🔑</button>
+                                    <button onclick="logout()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">Salir</button>
+                                </div>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            ${state.changingPassword ? `
+                            <div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto mb-6">
+                                <h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2>
+                                <form onsubmit="changePassword(event)" class="space-y-4">
+                                    <input type="password" id="currentPass" placeholder="Contraseña actual" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="newPass" placeholder="Nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="confirmPass" placeholder="Confirmar nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">Guardar</button>
+                                        <button type="button" onclick="state.changingPassword=false;render()" class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                            ` : ''}
+                            ${state.coms.length > 0 ? `
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
+                                <h3 class="font-bold text-blue-800 mb-2">📢 Comunicados</h3>
+                                ${state.coms.map(c => `
+                                <div class="mb-2 p-3 rounded ${c.urg?'bg-red-100':'bg-white'}">
+                                    <p class="font-medium">${c.tit}</p>
+                                    <p class="text-sm text-gray-700">${c.con}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                            ` : ''}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-white rounded-lg shadow p-6">
+                                    <h2 class="text-xl font-bold mb-4">🔑 Códigos de Autorización</h2>
+                                    <button onclick="genCode()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 mb-4 font-medium">➕ Generar Código (2 min)</button>
+                                    <h3 class="font-medium mb-2 text-gray-700">Códigos Activos (sin usar):</h3>
+                                    <div class="space-y-2">
+                                        ${myCodes.length === 0 ? '<p class="text-gray-500 text-sm">No hay códigos disponibles</p>' :
+                                        myCodes.map(([code, d]) => {
+                                            const timeLeft = Math.max(0, Math.floor((d.expires - Date.now()) / 1000));
+                                            return `
+                                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="font-mono font-bold text-xl text-blue-900">${code}</span>
+                                                    <span class="text-xs text-gray-600">⏱️ ${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</span>
+                                                </div>
+                                            </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6">
+                                    <h2 class="text-xl font-bold mb-4">➕ Agregar Tiempo Manual</h2>
+                                    <form onsubmit="addManual(event)" class="space-y-3">
+                                        <select id="mu" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" required>
+                                            <option value="">Seleccionar trabajador</option>
+                                            ${state.users.filter(u => u.role === 'bajo').map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+                                        </select>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <input type="number" id="mh" placeholder="Horas" min="0" value="0" class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                            <input type="number" id="mm" placeholder="Min" min="0" max="59" value="0" class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                            <input type="number" id="ms" placeholder="Seg" min="0" max="59" value="0" class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                        </div>
+                                        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium">Agregar Tiempo</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">👥 Trabajadores Activos</h2>
+                                ${activos.length === 0 ? '<p class="text-gray-500 text-center py-8">No hay trabajadores activos</p>' :
+                                `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    ${activos.map(a => `
+                                    <div class="border-2 rounded-lg p-4 bg-green-50 border-green-200">
+                                        <h3 class="font-bold text-lg mb-2 text-gray-800">${a.uname}</h3>
+                                        <p class="text-4xl font-bold text-green-700 mb-2 timer-display" data-user-id="${a.uid}">${fmt(a.elapsed)}</p>
+                                        <p class="text-sm text-gray-600 mb-3">${a.running ? '🟢 Corriendo' : '⏸️ Pausado'}</p>
+                                        <button onclick="stopUserTimer(${a.uid})" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-medium">⏹️ Detener</button>
+                                    </div>
+                                    `).join('')}
+                                </div>`}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.view === 'alto-actas') {
+                const myActas = state.actas.filter(a => a.byRole === 'alto');
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gray-100">
+                        <nav class="bg-blue-700 text-white p-4">
+                            <div class="container mx-auto flex justify-between">
+                                <h1 class="text-xl font-bold">Mis Actas Administrativas</h1>
+                                <button onclick="state.view='alto';render()" class="bg-blue-600 px-4 py-2 rounded">Volver</button>
+                            </div>
+                        </nav>
+                        <div class="container mx-auto p-4">
+                            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6 rounded">
+                                <p class="font-bold text-purple-800">🔐 Necesitas autorización de un Admin</p>
+                                <p class="text-sm text-purple-700">Solicita un código de autorización para crear actas administrativas</p>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Crear Acta Administrativa</h2>
+                                <form onsubmit="addActa(event)" class="space-y-4">
+                                    <select id="au" class="w-full px-4 py-2 border rounded" required>
+                                        <option value="">Seleccionar trabajador</option>
+                                        ${state.users.filter(u => u.role === 'bajo').map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+                                    </select>
+                                    <textarea id="am" placeholder="Motivo del acta" class="w-full px-4 py-2 border rounded h-32" required></textarea>
+                                    <input type="text" id="actaAuth" placeholder="CÓDIGO DE AUTORIZACIÓN ADMIN" class="w-full px-4 py-2 border-2 border-purple-300 rounded uppercase font-mono" required>
+                                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">Crear Acta</button>
+                                </form>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h2 class="text-xl font-bold mb-4">Actas que he creado</h2>
+                                ${myActas.length === 0 ? '<p class="text-gray-500 text-center py-4">No has creado actas</p>' :
+                                myActas.map(a => `
+                                <div class="border rounded p-4 mb-4 bg-red-50">
+                                    <h3 class="font-bold text-lg">${a.uname}</h3>
+                                    <p class="text-sm text-gray-600">Fecha: ${new Date(a.date).toLocaleString()}</p>
+                                    <p class="text-gray-800 mt-2">${a.mot}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        load();
+        render();
+        
+        // Detectar actividad del usuario
+        document.addEventListener('click', updateActivity);
+        document.addEventListener('keypress', updateActivity);
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -17,11 +514,22 @@
             records: [],
             actas: [],
             coms: [],
+            adminCodes: {},
+            team: [
+                {name: 'Director General', avatar: '👔', desc: 'CEO y Fundador'},
+                {name: 'Jefe de Operaciones', avatar: '💼', desc: 'Director de RRHH'},
+                {name: 'Supervisor Principal', avatar: '👨‍💼', desc: 'Coordinador General'}
+            ],
             view: 'login',
-            editingActa: null
+            editingActa: null,
+            editingUser: null,
+            changingPassword: false,
+            onlineUsers: {},
+            lastActivity: {}
         };
 
         let timerInterval = null;
+        let activityInterval = null;
 
         function save() {
             try {
@@ -30,7 +538,9 @@
                     codes: state.codes,
                     records: state.records,
                     actas: state.actas,
-                    coms: state.coms
+                    coms: state.coms,
+                    adminCodes: state.adminCodes,
+                    team: state.team
                 }));
             } catch(e) {}
         }
@@ -45,6 +555,8 @@
                     state.records = parsed.records || [];
                     state.actas = parsed.actas || [];
                     state.coms = parsed.coms || [];
+                    state.adminCodes = parsed.adminCodes || {};
+                    state.team = parsed.team || state.team;
                 }
             } catch(e) {}
         }
@@ -56,8 +568,21 @@
             return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
         }
 
+        function updateActivity() {
+            if (state.user) {
+                state.lastActivity[state.user.id] = Date.now();
+            }
+        }
+
+        function checkOnlineStatus() {
+            const now = Date.now();
+            Object.keys(state.lastActivity).forEach(uid => {
+                const diff = now - state.lastActivity[uid];
+                state.onlineUsers[uid] = diff < 60000; // Online si actividad en último minuto
+            });
+        }
+
         function updateTimerDisplay() {
-            // Solo actualiza el display del timer sin re-renderizar todo
             const timerDisplays = document.querySelectorAll('.timer-display');
             timerDisplays.forEach(display => {
                 const userId = display.dataset.userId;
@@ -65,6 +590,23 @@
                     display.textContent = fmt(state.timers[userId].elapsed);
                 }
             });
+        }
+
+        function cleanExpiredCodes() {
+            const now = Date.now();
+            Object.keys(state.codes).forEach(code => {
+                const data = state.codes[code];
+                if (data.expires && now > data.expires) {
+                    delete state.codes[code];
+                }
+            });
+            Object.keys(state.adminCodes).forEach(code => {
+                const data = state.adminCodes[code];
+                if (data.expires && now > data.expires) {
+                    delete state.adminCodes[code];
+                }
+            });
+            save();
         }
 
         function login(e) {
@@ -75,17 +617,24 @@
             if (user) {
                 state.user = user;
                 state.view = user.role === 'admin' ? 'admin' : user.role === 'alto' ? 'alto' : 'bajo';
+                state.lastActivity[user.id] = Date.now();
+                state.onlineUsers[user.id] = true;
                 render();
                 startTimerInterval();
+                startActivityInterval();
             } else {
                 alert('Credenciales incorrectas');
             }
         }
 
         function logout() {
+            if (state.user) {
+                state.onlineUsers[state.user.id] = false;
+            }
             state.user = null;
             state.view = 'login';
             stopTimerInterval();
+            stopActivityInterval();
             render();
         }
 
@@ -102,6 +651,7 @@
                 if (hasActiveTimers) {
                     updateTimerDisplay();
                 }
+                cleanExpiredCodes();
             }, 1000);
         }
 
@@ -112,15 +662,46 @@
             }
         }
 
+        function startActivityInterval() {
+            if (activityInterval) return;
+            activityInterval = setInterval(() => {
+                updateActivity();
+                checkOnlineStatus();
+            }, 10000); // Cada 10 segundos
+        }
+
+        function stopActivityInterval() {
+            if (activityInterval) {
+                clearInterval(activityInterval);
+                activityInterval = null;
+            }
+        }
+
         function genCode() {
             const code = Math.random().toString(36).substring(2,8).toUpperCase();
+            const expires = Date.now() + (2 * 60 * 1000); // 2 minutos
             state.codes[code] = {
                 altoId: state.user.id,
                 altoName: state.user.name,
-                used: []
+                expires: expires,
+                used: false
             };
             save();
-            alert('Código generado: ' + code);
+            alert('Código generado: ' + code + '\n⏱️ Expira en 2 minutos');
+            render();
+        }
+
+        function genAdminCode() {
+            const code = Math.random().toString(36).substring(2,8).toUpperCase();
+            const expires = Date.now() + (5 * 60 * 1000); // 5 minutos para admins
+            state.adminCodes[code] = {
+                adminId: state.user.id,
+                adminName: state.user.name,
+                expires: expires,
+                used: false
+            };
+            save();
+            alert('Código de autorización Admin: ' + code + '\n⏱️ Expira en 5 minutos');
             render();
         }
 
@@ -131,7 +712,18 @@
                 return;
             }
             if (!state.codes[code]) {
-                alert('Código inválido');
+                alert('Código inválido o expirado');
+                return;
+            }
+            if (state.codes[code].used) {
+                alert('Este código ya fue utilizado');
+                return;
+            }
+            const now = Date.now();
+            if (state.codes[code].expires && now > state.codes[code].expires) {
+                alert('Este código ha expirado');
+                delete state.codes[code];
+                save();
                 return;
             }
             state.timers[state.user.id] = {
@@ -141,48 +733,18 @@
                 altoName: state.codes[code].altoName,
                 code: code
             };
-            state.codes[code].used.push(state.user.id);
+            state.codes[code].used = true;
             save();
             render();
         }
 
-        function toggle() {
-            if (state.timers[state.user.id]) {
-                state.timers[state.user.id].running = !state.timers[state.user.id].running;
-                render();
-            }
-        }
-
-        function stop() {
-            const t = state.timers[state.user.id];
-            if (t) {
-                const mins = Math.floor(t.elapsed/60);
-                const h = Math.floor(mins/60);
-                const m = mins%60;
-                state.records.push({
-                    id: state.records.length+1,
-                    userId: state.user.id,
-                    userName: state.user.name,
-                    altoId: t.altoId,
-                    altoName: t.altoName,
-                    secs: t.elapsed,
-                    h: h,
-                    m: m,
-                    date: new Date().toISOString()
-                });
-                delete state.timers[state.user.id];
-                save();
-                alert(`Tiempo registrado: ${h}h ${m}m`);
-                render();
-            }
-        }
-
-        function stopUser(uid) {
+        function stopUserTimer(uid) {
             const t = state.timers[uid];
             if (t) {
                 const mins = Math.floor(t.elapsed/60);
                 const h = Math.floor(mins/60);
                 const m = mins%60;
+                const s = t.elapsed%60;
                 const u = state.users.find(x => x.id === uid);
                 state.records.push({
                     id: state.records.length+1,
@@ -193,11 +755,13 @@
                     secs: t.elapsed,
                     h: h,
                     m: m,
-                    date: new Date().toISOString()
+                    s: s,
+                    date: new Date().toISOString(),
+                    stoppedBy: state.user.name
                 });
                 delete state.timers[uid];
                 save();
-                alert(`Detenido: ${u.name} - ${h}h ${m}m`);
+                alert(`Detenido: ${u.name} - ${h}h ${m}m ${s}s`);
                 render();
             }
         }
@@ -218,10 +782,87 @@
             render();
         }
 
+        function editUser(id) {
+            state.editingUser = state.users.find(u => u.id === id);
+            render();
+        }
+
+        function saveUserEdit(e) {
+            e.preventDefault();
+            const user = state.users.find(u => u.id === state.editingUser.id);
+            user.name = document.getElementById('editName').value;
+            user.username = document.getElementById('editUsername').value;
+            user.password = document.getElementById('editPassword').value;
+            user.role = document.getElementById('editRole').value;
+            state.editingUser = null;
+            save();
+            alert('Usuario actualizado');
+            render();
+        }
+
+        function cancelUserEdit() {
+            state.editingUser = null;
+            render();
+        }
+
+        function changePassword(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPass').value;
+            const newPass = document.getElementById('newPass').value;
+            const confirmPass = document.getElementById('confirmPass').value;
+            
+            if (state.user.password !== currentPass) {
+                alert('Contraseña actual incorrecta');
+                return;
+            }
+            if (newPass !== confirmPass) {
+                alert('Las contraseñas nuevas no coinciden');
+                return;
+            }
+            if (newPass.length < 3) {
+                alert('La contraseña debe tener al menos 3 caracteres');
+                return;
+            }
+            
+            const user = state.users.find(u => u.id === state.user.id);
+            user.password = newPass;
+            state.user.password = newPass;
+            state.changingPassword = false;
+            save();
+            alert('✅ Contraseña cambiada exitosamente');
+            render();
+        }
+
         function addActa(e) {
             e.preventDefault();
             const uid = parseInt(document.getElementById('au').value);
             const mot = document.getElementById('am').value;
+            const authCode = document.getElementById('actaAuth')?.value?.toUpperCase().trim();
+            
+            // Si es Cargo Alto, necesita código de autorización
+            if (state.user.role === 'alto') {
+                if (!authCode) {
+                    alert('Necesitas un código de autorización de un Admin');
+                    return;
+                }
+                if (!state.adminCodes[authCode]) {
+                    alert('Código de autorización inválido o expirado');
+                    return;
+                }
+                if (state.adminCodes[authCode].used) {
+                    alert('Este código ya fue utilizado');
+                    return;
+                }
+                const now = Date.now();
+                if (state.adminCodes[authCode].expires && now > state.adminCodes[authCode].expires) {
+                    alert('Este código ha expirado');
+                    delete state.adminCodes[authCode];
+                    save();
+                    return;
+                }
+                state.adminCodes[authCode].used = true;
+            }
+            
             const u = state.users.find(x => x.id === uid);
             state.actas.push({
                 id: state.actas.length+1,
@@ -229,6 +870,7 @@
                 uname: u.name,
                 mot: mot,
                 by: state.user.name,
+                byRole: state.user.role,
                 date: new Date().toISOString()
             });
             save();
@@ -295,8 +937,9 @@
             const uid = parseInt(document.getElementById('mu').value);
             const h = parseInt(document.getElementById('mh').value) || 0;
             const m = parseInt(document.getElementById('mm').value) || 0;
+            const s = parseInt(document.getElementById('ms').value) || 0;
             const u = state.users.find(x => x.id === uid);
-            const secs = (h * 3600) + (m * 60);
+            const secs = (h * 3600) + (m * 60) + s;
             state.records.push({
                 id: state.records.length+1,
                 userId: uid,
@@ -306,12 +949,32 @@
                 secs: secs,
                 h: h,
                 m: m,
+                s: s,
                 date: new Date().toISOString(),
                 manual: true
             });
             save();
-            alert(`Tiempo agregado: ${h}h ${m}m a ${u.name}`);
+            alert(`Tiempo agregado: ${h}h ${m}m ${s}s a ${u.name}`);
             render();
+        }
+
+        function addTeamMember(e) {
+            e.preventDefault();
+            const name = document.getElementById('teamName').value;
+            const avatar = document.getElementById('teamAvatar').value;
+            const desc = document.getElementById('teamDesc').value;
+            state.team.push({name, avatar, desc});
+            save();
+            alert('Miembro agregado al equipo');
+            render();
+        }
+
+        function delTeamMember(idx) {
+            if (confirm('¿Eliminar este miembro?')) {
+                state.team.splice(idx, 1);
+                save();
+                render();
+            }
         }
 
         function calcStats() {
@@ -332,8 +995,16 @@
             return Object.values(st);
         }
 
+        function getStatusBadge(userId) {
+            return state.onlineUsers[userId] ? 
+                '<span class="text-xs bg-green-500 text-white px-2 py-1 rounded-full">🟢 Online</span>' :
+                '<span class="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">⚫ Offline</span>';
+        }
+
         function render() {
+            updateActivity();
             const app = document.getElementById('app');
+            
             if (state.view === 'login') {
                 app.innerHTML = `
                     <div class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4">
@@ -355,13 +1026,32 @@
                 app.innerHTML = `
                     <div class="min-h-screen bg-gray-100">
                         <nav class="bg-blue-900 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
+                            <div class="container mx-auto flex justify-between items-center">
                                 <h1 class="text-xl font-bold">GestorFederal - Admin</h1>
-                                <button onclick="logout()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-600">Salir</button>
+                                <div class="flex gap-2">
+                                    <button onclick="state.changingPassword=true;render()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-600">🔑 Cambiar Contraseña</button>
+                                    <button onclick="logout()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-600">Salir</button>
+                                </div>
                             </div>
                         </nav>
+                        ${state.changingPassword ? `
                         <div class="container mx-auto p-4">
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto">
+                                <h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2>
+                                <form onsubmit="changePassword(event)" class="space-y-4">
+                                    <input type="password" id="currentPass" placeholder="Contraseña actual" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="newPass" placeholder="Nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <input type="password" id="confirmPass" placeholder="Confirmar nueva contraseña" required class="w-full px-4 py-2 border rounded">
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">Guardar</button>
+                                        <button type="button" onclick="state.changingPassword=false;render()" class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="container mx-auto p-4">
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                                 <button onclick="state.view='users';render()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
                                     <h3 class="font-bold">👥 Usuarios</h3>
                                 </button>
@@ -374,6 +1064,14 @@
                                 <button onclick="state.view='coms';render()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
                                     <h3 class="font-bold">📢 Comunicados</h3>
                                 </button>
+                                <button onclick="state.view='team';render()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
+                                    <h3 class="font-bold">🎮 Nuestro Equipo</h3>
+                                </button>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                                <h2 class="text-xl font-bold mb-4">Generar Código de Autorización</h2>
+                                <button onclick="genAdminCode()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">🔐 Generar Código Admin</button>
+                                <p class="text-sm text-gray-600 mt-2">Los Cargos Altos necesitan este código para crear actas administrativas</p>
                             </div>
                             <div class="bg-white rounded-lg shadow p-6">
                                 <h2 class="text-2xl font-bold mb-4">Estadísticas</h2>
@@ -393,6 +1091,7 @@
                                 </div>
                             </div>
                         </div>
+                        `}
                     </div>
                 `;
             } else if (state.view === 'users') {
@@ -400,11 +1099,30 @@
                     <div class="min-h-screen bg-gray-100">
                         <nav class="bg-blue-900 text-white p-4">
                             <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">Usuarios</h1>
+                                <h1 class="text-xl font-bold">Gestión de Usuarios</h1>
                                 <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
                             </div>
                         </nav>
                         <div class="container mx-auto p-4">
+                            ${state.editingUser ? `
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6 rounded-lg">
+                                <h2 class="text-xl font-bold mb-4">✏️ Editando Usuario</h2>
+                                <form onsubmit="saveUserEdit(event)" class="grid grid-cols-2 gap-4">
+                                    <input type="text" id="editName" value="${state.editingUser.name}" placeholder="Nombre" required class="px-4 py-2 border rounded">
+                                    <input type="text" id="editUsername" value="${state.editingUser.username}" placeholder="Usuario" required class="px-4 py-2 border rounded">
+                                    <input type="password" id="editPassword" value="${state.editingUser.password}" placeholder="Contraseña" required class="px-4 py-2 border rounded">
+                                    <select id="editRole" class="px-4 py-2 border rounded">
+                                        <option value="bajo" ${state.editingUser.role==='bajo'?'selected':''}>Cargo Bajo</option>
+                                        <option value="alto" ${state.editingUser.role==='alto'?'selected':''}>Cargo Alto</option>
+                                        <option value="admin" ${state.editingUser.role==='admin'?'selected':''}>Admin</option>
+                                    </select>
+                                    <div class="col-span-2 flex gap-2">
+                                        <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">💾 Guardar</button>
+                                        <button type="button" onclick="cancelUserEdit()" class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">❌ Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                            ` : `
                             <div class="bg-white rounded-lg shadow p-6 mb-6">
                                 <h2 class="text-xl font-bold mb-4">Crear Usuario</h2>
                                 <form onsubmit="addUser(event)" class="grid grid-cols-2 gap-4">
@@ -416,381 +1134,25 @@
                                         <option value="alto">Cargo Alto</option>
                                         <option value="admin">Admin</option>
                                     </select>
-                                    <button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Crear</button>
-                                </form>
-                            </div>
-                            <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">Lista de Usuarios</h2>
-                                <table class="w-full">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left">Nombre</th>
-                                            <th class="px-4 py-2 text-left">Usuario</th>
-                                            <th class="px-4 py-2 text-left">Rol</th>
-                                            <th class="px-4 py-2 text-left">Contraseña</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${state.users.map(u => `
-                                        <tr class="border-t">
-                                            <td class="px-4 py-2">${u.name}</td>
-                                            <td class="px-4 py-2">${u.username}</td>
-                                            <td class="px-4 py-2">
-                                                <span class="px-2 py-1 text-xs rounded ${
-                                                    u.role==='admin'?'bg-red-100 text-red-800':
-                                                    u.role==='alto'?'bg-blue-100 text-blue-800':
-                                                    'bg-green-100 text-green-800'
-                                                }">
-                                                    ${u.role==='admin'?'Admin':u.role==='alto'?'Cargo Alto':'Cargo Bajo'}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-2">${u.password}</td>
-                                        </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (state.view === 'actas') {
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gray-100">
-                        <nav class="bg-blue-900 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">Actas Administrativas</h1>
-                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
-                            </div>
-                        </nav>
-                        <div class="container mx-auto p-4">
-                            ${state.editingActa ? `
-                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6 rounded-lg">
-                                <h2 class="text-xl font-bold mb-4">✏️ Editando Acta</h2>
-                                <form onsubmit="saveActa(event)" class="space-y-4">
-                                    <div>
-                                        <p class="text-sm text-gray-600 mb-2">Trabajador: <strong>${state.editingActa.uname}</strong></p>
-                                        <p class="text-sm text-gray-600 mb-2">Creada por: ${state.editingActa.by}</p>
-                                    </div>
-                                    <textarea id="editMot" class="w-full px-4 py-2 border rounded h-32" required>${state.editingActa.mot}</textarea>
-                                    <div class="flex gap-2">
-                                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">💾 Guardar</button>
-                                        <button type="button" onclick="cancelEdit()" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">❌ Cancelar</button>
-                                    </div>
-                                </form>
-                            </div>
-                            ` : `
-                            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                                <h2 class="text-xl font-bold mb-4">Crear Acta</h2>
-                                <form onsubmit="addActa(event)" class="space-y-4">
-                                    <select id="au" class="w-full px-4 py-2 border rounded" required>
-                                        <option value="">Seleccionar trabajador</option>
-                                        ${state.users.filter(u => u.role !== 'admin').map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
-                                    </select>
-                                    <textarea id="am" placeholder="Motivo del acta" class="w-full px-4 py-2 border rounded h-32" required></textarea>
-                                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">Crear Acta</button>
+                                    <button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Crear Usuario</button>
                                 </form>
                             </div>
                             `}
                             <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">Actas Registradas</h2>
-                                ${state.actas.length === 0 ? '<p class="text-gray-500 text-center py-4">Sin actas</p>' :
-                                state.actas.map(a => `
-                                <div class="border rounded p-4 mb-4 bg-red-50">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h3 class="font-bold text-lg">${a.uname}</h3>
-                                            <p class="text-sm text-gray-600">Por: ${a.by} • ${new Date(a.date).toLocaleString()}</p>
-                                            ${a.edited ? `<p class="text-xs text-gray-500 mt-1">✏️ Editada por ${a.editedBy} el ${new Date(a.editedDate).toLocaleString()}</p>` : ''}
-                                        </div>
-                                        <button onclick="editActa(${a.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">✏️ Editar</button>
-                                    </div>
-                                    <p class="text-gray-800 mt-2">${a.mot}</p>
-                                </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (state.view === 'bit') {
-                const stats = calcStats();
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gray-100">
-                        <nav class="bg-blue-900 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">Bitácora Cargos Altos</h1>
-                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
-                            </div>
-                        </nav>
-                        <div class="container mx-auto p-4">
-                            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                                <h2 class="text-xl font-bold mb-4">Horas Completas por Cargo Alto</h2>
-                                <p class="text-sm text-gray-600 mb-4">Solo se cuentan horas completas. Los minutos sobrantes se acumulan hasta completar otra hora.</p>
-                                <table class="w-full">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left">Cargo Alto</th>
-                                            <th class="px-4 py-2 text-left">Horas Completas</th>
-                                            <th class="px-4 py-2 text-left">Min. Pendientes</th>
-                                            <th class="px-4 py-2 text-left">Total Supervisado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${stats.length === 0 ? '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Sin datos</td></tr>' :
-                                        stats.map(s => `
-                                        <tr class="border-t">
-                                            <td class="px-4 py-3 font-medium">${s.name}</td>
-                                            <td class="px-4 py-3"><span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">${s.comp}h</span></td>
-                                            <td class="px-4 py-3 text-gray-600">${s.pend} min</td>
-                                            <td class="px-4 py-3 text-gray-600">${Math.floor(s.tot/60)}h ${s.tot%60}m</td>
-                                        </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">Registros de Tiempo</h2>
-                                <table class="w-full text-sm">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left">Fecha</th>
-                                            <th class="px-3 py-2 text-left">Trabajador</th>
-                                            <th class="px-3 py-2 text-left">Cargo Alto</th>
-                                            <th class="px-3 py-2 text-left">Tiempo</th>
-                                            <th class="px-3 py-2 text-left">Tipo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${state.records.length === 0 ? '<tr><td colspan="5" class="px-3 py-8 text-center text-gray-500">Sin registros</td></tr>' :
-                                        state.records.map(r => `
-                                        <tr class="border-t">
-                                            <td class="px-3 py-2">${new Date(r.date).toLocaleString()}</td>
-                                            <td class="px-3 py-2">${r.userName}</td>
-                                            <td class="px-3 py-2">${r.altoName}</td>
-                                            <td class="px-3 py-2 font-medium">${r.h}h ${r.m}m</td>
-                                            <td class="px-3 py-2">
-                                                <span class="text-xs px-2 py-1 rounded ${r.manual?'bg-yellow-100 text-yellow-800':'bg-blue-100 text-blue-800'}">
-                                                    ${r.manual?'Manual':'Auto'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (state.view === 'coms') {
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gray-100">
-                        <nav class="bg-blue-900 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">Comunicados (${state.coms.length}/10)</h1>
-                                <button onclick="state.view='admin';render()" class="bg-blue-700 px-4 py-2 rounded">Volver</button>
-                            </div>
-                        </nav>
-                        <div class="container mx-auto p-4">
-                            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                                <h2 class="text-xl font-bold mb-4">Crear Comunicado</h2>
-                                <form onsubmit="addCom(event)" class="space-y-4">
-                                    <input type="text" id="ct" placeholder="Título del comunicado" required class="w-full px-4 py-2 border rounded">
-                                    <textarea id="cc" placeholder="Contenido del comunicado" class="w-full px-4 py-2 border rounded h-32" required></textarea>
-                                    <label class="flex items-center gap-2">
-                                        <input type="checkbox" id="cu" class="w-4 h-4">
-                                        <span>Marcar como urgente</span>
-                                    </label>
-                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700" ${state.coms.length >= 10 ? 'disabled' : ''}>Publicar Comunicado</button>
-                                </form>
-                            </div>
-                            <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">Comunicados Activos</h2>
-                                ${state.coms.length === 0 ? '<p class="text-gray-500 text-center py-4">Sin comunicados</p>' :
-                                state.coms.map(c => `
-                                <div class="border rounded p-4 mb-4 ${c.urg ? 'bg-red-50 border-red-300' : 'bg-gray-50'}">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-1">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <h3 class="font-bold text-lg">${c.tit}</h3>
-                                                ${c.urg ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded">URGENTE</span>' : ''}
-                                            </div>
-                                            <p class="text-sm text-gray-600">Por: ${c.by} • ${new Date(c.date).toLocaleString()}</p>
-                                        </div>
-                                        <button onclick="delCom(${c.id})" class="text-red-600 hover:text-red-800 text-xl">🗑️</button>
-                                    </div>
-                                    <p class="text-gray-800 mt-2">${c.con}</p>
-                                </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (state.view === 'bajo') {
-                const t = state.timers[state.user.id];
-                const myRecs = state.records.filter(r => r.userId === state.user.id);
-                const myActas = state.actas.filter(a => a.uid === state.user.id);
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gray-100">
-                        <nav class="bg-green-700 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">GestorFederal - ${state.user.name}</h1>
-                                <button onclick="logout()" class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">Salir</button>
-                            </div>
-                        </nav>
-                        <div class="container mx-auto p-4">
-                            ${state.coms.length > 0 ? `
-                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
-                                <h3 class="font-bold text-blue-800 mb-2">📢 Comunicados Importantes</h3>
-                                ${state.coms.map(c => `
-                                <div class="mb-2 p-3 rounded ${c.urg?'bg-red-100':'bg-white'}">
-                                    <p class="font-medium">${c.tit}</p>
-                                    <p class="text-sm text-gray-700">${c.con}</p>
-                                </div>
-                                `).join('')}
-                            </div>
-                            ` : ''}
-                            ${myActas.length > 0 ? `
-                            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded">
-                                <h3 class="font-bold text-red-800 mb-2">⚠️ Tienes ${myActas.length} acta(s) administrativa(s)</h3>
-                                ${myActas.slice(0,2).map(a => `
-                                <div class="bg-white p-2 rounded mb-2">
-                                    <p class="text-sm font-medium">Motivo: ${a.mot}</p>
-                                    <p class="text-xs text-gray-600">Fecha: ${new Date(a.date).toLocaleDateString()}</p>
-                                </div>
-                                `).join('')}
-                            </div>
-                            ` : ''}
-                            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                                <h2 class="text-2xl font-bold mb-4">⏱️ Control de Tiempo</h2>
-                                ${!t ? `
-                                <div class="space-y-4">
-                                    <p class="text-gray-700">Ingresa el código de autorización que te dio tu supervisor:</p>
-                                    <div class="flex gap-2">
-                                        <input type="text" id="code" placeholder="CÓDIGO" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-lg uppercase font-mono focus:border-green-500 focus:outline-none">
-                                        <button onclick="startTimer()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium">▶️ Iniciar</button>
-                                    </div>
-                                </div>
-                                ` : `
-                                <div class="space-y-4">
-                                    <div class="bg-green-50 p-6 rounded-lg text-center border-2 border-green-200">
-                                        <p class="text-sm text-gray-600 mb-2">Tiempo Actual</p>
-                                        <p class="text-5xl font-bold text-green-700 mb-2 timer-display" data-user-id="${state.user.id}">${fmt(t.elapsed)}</p>
-                                        <p class="text-sm text-gray-700">Supervisado por: <strong>${t.altoName}</strong></p>
-                                        <p class="text-xs text-gray-500 mt-1">${t.running ? '🟢 Corriendo' : '⏸️ Pausado'}</p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="toggle()" class="flex-1 ${t.running?'bg-yellow-500 hover:bg-yellow-600':'bg-green-600 hover:bg-green-700'} text-white px-6 py-3 rounded-lg font-medium transition">
-                                            ${t.running?'⏸️ Pausar':'▶️ Reanudar'}
-                                        </button>
-                                        <button onclick="stop()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-medium transition">⏹️ Detener</button>
-                                    </div>
-                                </div>
-                                `}
-                            </div>
-                            <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">📊 Mi Historial</h2>
+                                <h2 class="text-xl font-bold mb-4">Lista de Usuarios</h2>
                                 <div class="overflow-x-auto">
                                     <table class="w-full">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="px-4 py-2 text-left">Fecha</th>
-                                                <th class="px-4 py-2 text-left">Tiempo</th>
-                                                <th class="px-4 py-2 text-left">Supervisado por</th>
+                                                <th class="px-4 py-2 text-left">Estado</th>
+                                                <th class="px-4 py-2 text-left">Nombre</th>
+                                                <th class="px-4 py-2 text-left">Usuario</th>
+                                                <th class="px-4 py-2 text-left">Rol</th>
+                                                <th class="px-4 py-2 text-left">Contraseña</th>
+                                                <th class="px-4 py-2 text-left">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${myRecs.length === 0 ? '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Sin registros aún</td></tr>' :
-                                            myRecs.map(r => `
+                                            ${state.users.map(u => `
                                             <tr class="border-t">
-                                                <td class="px-4 py-3">${new Date(r.date).toLocaleString()}</td>
-                                                <td class="px-4 py-3 font-medium text-green-700">${r.h}h ${r.m}m</td>
-                                                <td class="px-4 py-3">${r.altoName}</td>
-                                            </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (state.view === 'alto') {
-                const activos = Object.entries(state.timers).map(([uid, t]) => {
-                    const u = state.users.find(x => x.id === parseInt(uid));
-                    return {...t, uid: parseInt(uid), uname: u?.name};
-                });
-                const myCodes = Object.entries(state.codes).filter(([c, d]) => d.altoId === state.user.id);
-                app.innerHTML = `
-                    <div class="min-h-screen bg-gray-100">
-                        <nav class="bg-blue-700 text-white p-4">
-                            <div class="container mx-auto flex justify-between">
-                                <h1 class="text-xl font-bold">Cargo Alto - ${state.user.name}</h1>
-                                <button onclick="logout()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">Salir</button>
-                            </div>
-                        </nav>
-                        <div class="container mx-auto p-4">
-                            ${state.coms.length > 0 ? `
-                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
-                                <h3 class="font-bold text-blue-800 mb-2">📢 Comunicados Importantes</h3>
-                                ${state.coms.map(c => `
-                                <div class="mb-2 p-3 rounded ${c.urg?'bg-red-100':'bg-white'}">
-                                    <p class="font-medium">${c.tit}</p>
-                                    <p class="text-sm text-gray-700">${c.con}</p>
-                                </div>
-                                `).join('')}
-                            </div>
-                            ` : ''}
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div class="bg-white rounded-lg shadow p-6">
-                                    <h2 class="text-xl font-bold mb-4">🔑 Códigos de Autorización</h2>
-                                    <button onclick="genCode()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 mb-4 font-medium">➕ Generar Código</button>
-                                    <h3 class="font-medium mb-2 text-gray-700">Códigos Activos:</h3>
-                                    <div class="space-y-2">
-                                        ${myCodes.length === 0 ? '<p class="text-gray-500 text-sm">No has generado códigos aún</p>' :
-                                        myCodes.map(([code, d]) => `
-                                        <div class="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-200">
-                                            <span class="font-mono font-bold text-xl text-blue-900">${code}</span>
-                                            <span class="text-sm text-gray-600 bg-white px-2 py-1 rounded">Usos: ${d.used.length}</span>
-                                        </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                <div class="bg-white rounded-lg shadow p-6">
-                                    <h2 class="text-xl font-bold mb-4">➕ Agregar Tiempo Manual</h2>
-                                    <form onsubmit="addManual(event)" class="space-y-3">
-                                        <select id="mu" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none" required>
-                                            <option value="">Seleccionar trabajador</option>
-                                            ${state.users.filter(u => u.role === 'bajo').map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
-                                        </select>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <input type="number" id="mh" placeholder="Horas" min="0" value="0" class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
-                                            <input type="number" id="mm" placeholder="Minutos" min="0" max="59" value="0" class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
-                                        </div>
-                                        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium">Agregar Tiempo</button>
-                                    </form>
-                                </div>
-                            </div>
-                            <div class="bg-white rounded-lg shadow p-6">
-                                <h2 class="text-xl font-bold mb-4">👥 Trabajadores Activos</h2>
-                                ${activos.length === 0 ? '<p class="text-gray-500 text-center py-8">No hay trabajadores activos en este momento</p>' :
-                                `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    ${activos.map(a => `
-                                    <div class="border-2 rounded-lg p-4 bg-green-50 border-green-200">
-                                        <h3 class="font-bold text-lg mb-2 text-gray-800">${a.uname}</h3>
-                                        <p class="text-4xl font-bold text-green-700 mb-2 timer-display" data-user-id="${a.uid}">${fmt(a.elapsed)}</p>
-                                        <p class="text-sm text-gray-600 mb-3">${a.running ? '🟢 Corriendo' : '⏸️ Pausado'}</p>
-                                        <button onclick="stopUser(${a.uid})" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-medium">⏹️ Detener Tiempo</button>
-                                    </div>
-                                    `).join('')}
-                                </div>`}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        load();
-        render();
-    </script>
-</body>
-</html>
+                                                <td class="px-4 py
