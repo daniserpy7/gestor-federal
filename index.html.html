@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GestorFederal - Sistema de Control de Tiempos</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Clock, Users, FileText, Bell, LogOut, Play, Pause, Square, Plus, Trash2, Award } = lucide;
+
+        const GestorFederal = () => {
+          const [currentUser, setCurrentUser] = useState(null);
+          const [users, setUsers] = useState([
+            { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Administrador' }
+          ]);
+          const [activeTimers, setActiveTimers] = useState({});
+          const [authCodes, setAuthCodes] = useState({});
+          const [timeRecords, setTimeRecords] = useState([]);
+          const [actas, setActas] = useState([]);
+          const [comunicados, setComunicados] = useState([]);
+          const [currentView, setCurrentView] = useState('login');
+          const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+          const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'bajo', name: '' });
+          const [authCodeInput, setAuthCodeInput] = useState('');
+          const [newActa, setNewActa] = useState({ targetUserId: '', motivo: '' });
+          const [newComunicado, setNewComunicado] = useState({ titulo: '', contenido: '', urgente: false });
+          const [manualTimeForm, setManualTimeForm] = useState({ userId: '', hours: 0, minutes: 0 });
+
+          useEffect(() => {
+            const interval = setInterval(() => {
+              setActiveTimers(prev => {
+                const updated = { ...prev };
+                Object.keys(updated).forEach(userId => {
+                  if (updated[userId].isRunning) {
+                    updated[userId].elapsed += 1;
+                  }
+                });
+                return updated;
+              });
+            }, 1000);
+            return () => clearInterval(interval);
+          }, []);
+
+          const formatTime = (seconds) => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+          };
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            const user = users.find(u => u.username === loginForm.username && u.password === loginForm.password);
+            
+            if (user) {
+              setCurrentUser(user);
+              setLoginForm({ username: '', password: '' });
+              
+              if (user.role === 'admin') {
+                setCurrentView('admin-dashboard');
+              } else if (user.role === 'alto') {
+                setCurrentView('alto-dashboard');
+              } else {
+                setCurrentView('bajo-dashboard');
+              }
+            } else {
+              alert('Usuario o contraseña incorrectos');
+            }
+          };
+
+          const handleLogout = () => {
+            setCurrentUser(null);
+            setCurrentView('login');
+          };
+
+          const createUser = (e) => {
+            e.preventDefault();
+            if (users.find(u => u.username === newUserForm.username)) {
+              alert('El usuario ya existe');
+              return;
+            }
+            const newUser = {
+              id: users.length + 1,
+              ...newUserForm
+            };
+            setUsers([...users, newUser]);
+            setNewUserForm({ username: '', password: '', role: 'bajo', name: '' });
+            alert('Usuario creado exitosamente');
+          };
+
+          const generateAuthCode = () => {
+            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            setAuthCodes({
+              ...authCodes,
+              [code]: {
+                cargoAltoId: currentUser.id,
+                cargoAltoName: currentUser.name,
+                createdAt: new Date(),
+                usedBy: []
+              }
+            });
+            alert(`Código generado: ${code}`);
+          };
+
+          const startTimer = () => {
+            if (!authCodeInput || !authCodes[authCodeInput]) {
+              alert('Código de autorización inválido');
+              return;
+            }
+
+            const code = authCodes[authCodeInput];
+            setActiveTimers({
+              ...activeTimers,
+              [currentUser.id]: {
+                elapsed: 0,
+                isRunning: true,
+                startTime: new Date(),
+                cargoAltoId: code.cargoAltoId,
+                cargoAltoName: code.cargoAltoName,
+                authCode: authCodeInput,
+                pendingMinutes: 0
+              }
+            });
+
+            setAuthCodes({
+              ...authCodes,
+              [authCodeInput]: {
+                ...code,
+                usedBy: [...code.usedBy, currentUser.id]
+              }
+            });
+
+            setAuthCodeInput('');
+          };
+
+          const toggleTimer = () => {
+            const timer = activeTimers[currentUser.id];
+            if (timer) {
+              setActiveTimers({
+                ...activeTimers,
+                [currentUser.id]: {
+                  ...timer,
+                  isRunning: !timer.isRunning
+                }
+              });
+            }
+          };
+
+          const stopTimer = () => {
+            const timer = activeTimers[currentUser.id];
+            if (timer) {
+              const totalSeconds = timer.elapsed;
+              const totalMinutes = Math.floor(totalSeconds / 60);
+              const hours = Math.floor(totalMinutes / 60);
+              const minutes = totalMinutes % 60;
+
+              const record = {
+                id: timeRecords.length + 1,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                cargoAltoId: timer.cargoAltoId,
+                cargoAltoName: timer.cargoAltoName,
+                totalSeconds,
+                hours,
+                minutes,
+                date: new Date(),
+                authCode: timer.authCode
+              };
+
+              setTimeRecords([...timeRecords, record]);
+
+              const newActiveTimers = { ...activeTimers };
+              delete newActiveTimers[currentUser.id];
+              setActiveTimers(newActiveTimers);
+
+              alert(`Tiempo registrado: ${hours}h ${minutes}m`);
+            }
+          };
+
+          const stopUserTimer = (userId) => {
+            const timer = activeTimers[userId];
+            if (timer) {
+              const totalSeconds = timer.elapsed;
+              const totalMinutes = Math.floor(totalSeconds / 60);
+              const hours = Math.floor(totalMinutes / 60);
+              const minutes = totalMinutes % 60;
+
+              const user = users.find(u => u.id === userId);
+
+              const record = {
+                id: timeRecords.length + 1,
+                userId,
+                userName: user.name,
+                cargoAltoId: timer.cargoAltoId,
+                cargoAltoName: timer.cargoAltoName,
+                totalSeconds,
+                hours,
+                minutes,
+                date: new Date(),
+                authCode: timer.authCode,
+                stoppedBy: currentUser.name
+              };
+
+              setTimeRecords([...timeRecords, record]);
+
+              const newActiveTimers = { ...activeTimers };
+              delete newActiveTimers[userId];
+              setActiveTimers(newActiveTimers);
+
+              alert(`Tiempo de ${user.name} detenido: ${hours}h ${minutes}m`);
+            }
+          };
+
+          const addManualTime = (userId, hours, minutes) => {
+            const user = users.find(u => u.id === userId);
+            const totalSeconds = (hours * 3600) + (minutes * 60);
+
+            const record = {
+              id: timeRecords.length + 1,
+              userId,
+              userName: user.name,
+              cargoAltoId: currentUser.id,
+              cargoAltoName: currentUser.name,
+              totalSeconds,
+              hours,
+              minutes,
+              date: new Date(),
+              manual: true,
+              addedBy: currentUser.name
+            };
+
+            setTimeRecords([...timeRecords, record]);
+            alert(`Tiempo manual agregado: ${hours}h ${minutes}m a ${user.name}`);
+          };
+
+          const createActa = (e) => {
+            e.preventDefault();
+            const targetUser = users.find(u => u.id === parseInt(newActa.targetUserId));
+            if (!targetUser) {
+              alert('Usuario no encontrado');
+              return;
+            }
+
+            const acta = {
+              id: actas.length + 1,
+              targetUserId: parseInt(newActa.targetUserId),
+              targetUserName: targetUser.name,
+              motivo: newActa.motivo,
+              createdBy: currentUser.name,
+              createdById: currentUser.id,
+              createdAt: new Date(),
+              edited: false
+            };
+
+            setActas([...actas, acta]);
+            setNewActa({ targetUserId: '', motivo: '' });
+            alert('Acta administrativa creada');
+          };
+
+          const createComunicado = (e) => {
+            e.preventDefault();
+            if (comunicados.length >= 10) {
+              alert('Máximo 10 comunicados activos');
+              return;
+            }
+
+            const comunicado = {
+              id: comunicados.length + 1,
+              titulo: newComunicado.titulo,
+              contenido: newComunicado.contenido,
+              urgente: newComunicado.urgente,
+              createdBy: currentUser.name,
+              createdAt: new Date()
+            };
+
+            setComunicados([...comunicados, comunicado]);
+            setNewComunicado({ titulo: '', contenido: '', urgente: false });
+            alert('Comunicado creado');
+          };
+
+          const deleteComunicado = (id) => {
+            setComunicados(comunicados.filter(c => c.id !== id));
+          };
+
+          const calculateCargoAltoHours = () => {
+            const cargoAltoStats = {};
+
+            timeRecords.forEach(record => {
+              if (!record.cargoAltoId) return;
+
+              if (!cargoAltoStats[record.cargoAltoId]) {
+                cargoAltoStats[record.cargoAltoId] = {
+                  name: record.cargoAltoName,
+                  totalMinutes: 0,
+                  pendingMinutes: 0,
+                  completedHours: 0
+                };
+              }
+
+              const totalMinutes = Math.floor(record.totalSeconds / 60);
+              cargoAltoStats[record.cargoAltoId].totalMinutes += totalMinutes;
+
+              const currentPending = cargoAltoStats[record.cargoAltoId].pendingMinutes;
+              const newTotal = currentPending + totalMinutes;
+              const completedHours = Math.floor(newTotal / 60);
+              const remainingMinutes = newTotal % 60;
+
+              cargoAltoStats[record.cargoAltoId].completedHours += completedHours;
+              cargoAltoStats[record.cargoAltoId].pendingMinutes = remainingMinutes;
+            });
+
+            return Object.entries(cargoAltoStats).map(([id, stats]) => ({
+              id,
+              ...stats
+            }));
+          };
+
+          const Icon = ({ icon: IconComponent, ...props }) => {
+            return <IconComponent {...props} />;
+          };
+
+          const LoginScreen = () => (
+            <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-blue-900 mb-2">GestorFederal</h1>
+                  <p className="text-gray-600">Sistema de Control de Tiempos</p>
+                </div>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                    <input
+                      type="text"
+                      value={loginForm.username}
+                      onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input
+                      type="password"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium">
+                    Iniciar Sesión
+                  </button>
+                </form>
+                <div className="mt-6 p-4 bg-gray-50 rounded text-sm text-gray-600">
+                  <p className="font-medium mb-1">Credenciales de prueba:</p>
+                  <p>Usuario: <span className="font-mono font-bold">admin</span></p>
+                  <p>Contraseña: <span className="font-mono font-bold">admin123</span></p>
+                </div>
+              </div>
+            </div>
+          );
+
+          if (currentView === 'login') return <LoginScreen />;
+          
+          return (
+            <div className="min-h-screen bg-gray-100">
+              <div className="text-center p-8">
+                <h1 className="text-3xl font-bold">Dashboard en construcción</h1>
+                <p>Usuario actual: {currentUser?.name} ({currentUser?.role})</p>
+                <button onClick={handleLogout} className="mt-4 bg-blue-600 text-white px-6 py-2 rounded">
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<GestorFederal />, document.getElementById('root'));
+    </script>
+</body>
+</html>
