@@ -145,4 +145,89 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.createElement("div");
     form.className = "bg-white shadow rounded p-4 mb-6";
     form.innerHTML = `
-      <h3 cl
+      <h3 class="text-lg font-semibold mb-3">Agregar nuevo usuario</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <input type="text" id="nuevoUsuario" placeholder="Usuario" class="border p-2 rounded">
+        <input type="password" id="nuevoPass" placeholder="Contraseña" class="border p-2 rounded">
+        <select id="nuevoRol" class="border p-2 rounded">
+          <option value="básico">Básico</option>
+          <option value="medio">Medio</option>
+          <option value="alto">Alto</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button id="agregarUsuario" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Agregar</button>
+    `;
+    container.appendChild(form);
+
+    // Tabla de usuarios
+    const tabla = document.createElement("div");
+    tabla.className = "bg-white shadow rounded p-4";
+    tabla.innerHTML = `
+      <h3 class="text-lg font-semibold mb-3">Usuarios registrados</h3>
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="border-b">
+            <th class="py-2">Usuario</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaUsuarios"></tbody>
+      </table>
+    `;
+    container.appendChild(tabla);
+
+    const tbody = document.getElementById("tablaUsuarios");
+
+    function actualizarUsuarios() {
+      tbody.innerHTML = "";
+      usuarios.forEach((u, i) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b";
+        tr.innerHTML = `
+          <td class="py-1">${u.usuario}</td>
+          <td>${u.rol}</td>
+          <td>
+            ${u.usuario !== "admin" ? `<button data-index="${i}" class="borrar bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Eliminar</button>` : ""}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.querySelectorAll(".borrar").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const i = e.target.dataset.index;
+          usuarios.splice(i, 1);
+          localStorage.setItem("usuarios", JSON.stringify(usuarios));
+          actualizarUsuarios();
+        });
+      });
+    }
+    actualizarUsuarios();
+
+    document.getElementById("agregarUsuario").addEventListener("click", () => {
+      const nuevoUsuario = document.getElementById("nuevoUsuario").value.trim();
+      const nuevoPass = document.getElementById("nuevoPass").value.trim();
+      const nuevoRol = document.getElementById("nuevoRol").value;
+
+      if (nuevoUsuario === "" || nuevoPass === "") {
+        alert("Completa todos los campos.");
+        return;
+      }
+
+      if (usuarios.some(u => u.usuario === nuevoUsuario)) {
+        alert("Ese usuario ya existe.");
+        return;
+      }
+
+      usuarios.push({ usuario: nuevoUsuario, contraseña: nuevoPass, rol: nuevoRol });
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      actualizarUsuarios();
+
+      document.getElementById("nuevoUsuario").value = "";
+      document.getElementById("nuevoPass").value = "";
+      document.getElementById("nuevoRol").value = "básico";
+    });
+  }
+});
