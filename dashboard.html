@@ -6,30 +6,24 @@
   <title>Gestor Federal - Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-900">
 
-  <!-- Encabezado -->
-  <header class="bg-blue-700 text-white p-4 flex justify-between items-center">
-    <h1 class="text-lg font-semibold">Gestor Federal</h1>
-    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded-lg">Cerrar sesión</button>
+  <!-- 🔵 Barra superior -->
+  <header class="fixed top-0 left-0 w-full bg-blue-700 text-white shadow z-20">
+    <div class="flex justify-between items-center px-6 py-3">
+      <h1 class="text-xl font-semibold">Gestor Federal</h1>
+      <button id="logoutBtn" class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-sm">
+        Cerrar sesión
+      </button>
+    </div>
   </header>
 
-  <!-- Contenido -->
-  <main class="flex-1 p-4">
-    <h2 class="text-xl font-bold mb-4">Bienvenido, <span id="userRole"></span></h2>
+  <!-- 🧭 Contenedor general -->
+  <div class="flex pt-16 min-h-screen">
 
-    <!-- Ejemplo de secciones -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="card">📄 <strong>Actas</strong><p>Gestión de actas internas.</p></div>
-      <div class="card">📢 <strong>Comunicados</strong><p>Mensajes generales y avisos.</p></div>
-      <div class="card">⏰ <strong>Control de tiempo</strong><p>Registro de actividades.</p></div>
-      <div class="card">👤 <strong>Usuarios</strong><p>Administración de roles y accesos.</p></div>
-    </div>
-  </main>
-
-  <footer class="text-center text-gray-500 py-4">© 2025 Gestor Federal</footer>
-
-  <script src="app.js"></script>
-</body>
-</html>
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-900 text-white flex flex-col fixed h-full pt-4">
+      <nav class="flex-1 px-3 space-y-2">
+        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800" data-vie
