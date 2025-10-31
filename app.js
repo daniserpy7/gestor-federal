@@ -1,45 +1,148 @@
-// ==== DATOS INICIALES ====
-const usuariosBase = [
-  { usuario: "admin", pass: "1234", rol: "admin" },
-  { usuario: "alto1", pass: "1234", rol: "alto" },
-  { usuario: "medio1", pass: "1234", rol: "medio" },
-  { usuario: "basico1", pass: "1234", rol: "basico" },
-];
+// === app.js ===
+// Control de vistas, roles y módulos del panel principal
 
-// Cargar usuarios en localStorage si no existen
-if (!localStorage.getItem("usuarios")) {
-  localStorage.setItem("usuarios", JSON.stringify(usuariosBase));
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const logoutBtn = document.getElementById("logoutBtn");
+  const navBtns = document.querySelectorAll(".nav-btn");
+  const sections = document.querySelectorAll(".view-section");
 
-// ==== LOGIN ====
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const usuarios = JSON.parse(localStorage.getItem("usuarios"));
-    const user = usuarios.find(u => u.usuario === username && u.pass === password);
+  // Si no hay usuario logeado, redirige al login
+  if (!currentUser) {
+    window.location.href = "index.html";
+    return;
+  }
 
-    if (user) {
-      localStorage.setItem("sesionActiva", JSON.stringify(user));
-      window.location.href = "dashboard.html";
-    } else {
-      document.getElementById("loginError").classList.remove("hidden");
-    }
-  });
-}
+  // Mostrar/ocultar opciones según rol
+  if (currentUser.rol !== "admin") {
+    document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
+  }
 
-// ==== DASHBOARD ====
-const userRole = document.getElementById("userRole");
-if (userRole) {
-  const sesion = JSON.parse(localStorage.getItem("sesionActiva"));
-  if (!sesion) window.location.href = "index.html";
-  userRole.textContent = `${sesion.usuario} (${sesion.rol})`;
-
-  // Botón de cerrar sesión
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("sesionActiva");
+  // Botón cerrar sesión
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("currentUser");
     window.location.href = "index.html";
   });
-}
+
+  // Navegación entre vistas
+  navBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.view;
+      sections.forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(`view-${view}`).classList.remove("hidden");
+
+      // Cargar contenido dinámico
+      if (view === "tiempo") renderControlTiempo();
+      if (view === "usuarios") renderUsuarios();
+    });
+  });
+
+  // === Módulo Control de Tiempo ===
+  function renderControlTiempo() {
+    const container = document.getElementById("tiempo-content");
+    container.innerHTML = "";
+
+    const registros = JSON.parse(localStorage.getItem("tiempos")) || [];
+    const misRegistros = registros.filter(r => r.usuario === currentUser.usuario);
+
+    // Formulario de registro de tiempo
+    const form = document.createElement("div");
+    form.className = "bg-white shadow rounded p-4 mb-6";
+    form.innerHTML = `
+      <h3 class="text-lg font-semibold mb-3">Registrar actividad</h3>
+      <label class="block mb-2 text-sm">Actividad</label>
+      <input type="text" id="actividad" class="border w-full p-2 rounded mb-3" placeholder="Ejemplo: Revisión de informes">
+      <div class="flex space-x-2">
+        <button id="entradaBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Entrada</button>
+        <button id="salidaBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Salida</button>
+      </div>
+    `;
+    container.appendChild(form);
+
+    const tabla = document.createElement("div");
+    tabla.className = "bg-white shadow rounded p-4";
+    tabla.innerHTML = `
+      <h3 class="text-lg font-semibold mb-3">Historial</h3>
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="border-b">
+            <th class="py-2">Fecha</th>
+            <th>Hora</th>
+            <th>Actividad</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody id="historial-tiempo"></tbody>
+      </table>
+    `;
+    container.appendChild(tabla);
+
+    const tbody = document.getElementById("historial-tiempo");
+
+    function actualizarTabla() {
+      tbody.innerHTML = "";
+      const registrosActuales = (currentUser.rol === "admin" || currentUser.rol === "alto")
+        ? registros
+        : misRegistros;
+      registrosActuales.slice().reverse().forEach(r => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b";
+        tr.innerHTML = `
+          <td class="py-1">${r.fecha}</td>
+          <td>${r.hora}</td>
+          <td>${r.actividad}</td>
+          <td>${r.tipo}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    actualizarTabla();
+
+    document.getElementById("entradaBtn").addEventListener("click", () => registrarTiempo("Entrada"));
+    document.getElementById("salidaBtn").addEventListener("click", () => registrarTiempo("Salida"));
+
+    function registrarTiempo(tipo) {
+      const actividad = document.getElementById("actividad").value.trim();
+      if (actividad === "") {
+        alert("Por favor ingresa una actividad.");
+        return;
+      }
+
+      const ahora = new Date();
+      const nuevoRegistro = {
+        usuario: currentUser.usuario,
+        fecha: ahora.toLocaleDateString(),
+        hora: ahora.toLocaleTimeString(),
+        actividad,
+        tipo
+      };
+
+      registros.push(nuevoRegistro);
+      localStorage.setItem("tiempos", JSON.stringify(registros));
+      actualizarTabla();
+      document.getElementById("actividad").value = "";
+    }
+  }
+
+  // === Módulo Gestión de Usuarios (solo admin) ===
+  function renderUsuarios() {
+    const container = document.getElementById("usuarios-content");
+    container.innerHTML = "";
+
+    if (currentUser.rol !== "admin") {
+      container.innerHTML = "<p class='text-gray-600'>No tienes permisos para ver esta sección.</p>";
+      return;
+    }
+
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [
+      { usuario: "admin", contraseña: "1234", rol: "admin" },
+      { usuario: "alto1", contraseña: "1234", rol: "alto" },
+      { usuario: "medio1", contraseña: "1234", rol: "medio" },
+      { usuario: "basico1", contraseña: "1234", rol: "básico" },
+    ];
+
+    // Formulario nuevo usuario
+    const form = document.createElement("div");
+    form.className = "bg-white shadow rounded p-4 mb-6";
+    form.innerHTML = `
+      <h3 cl
