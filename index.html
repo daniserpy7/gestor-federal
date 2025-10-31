@@ -29,6 +29,41 @@
     <p id="loginError" class="text-red-500 text-center mt-4 hidden">Usuario o contraseña incorrectos</p>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Script de login -->
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("loginError");
+
+    // Usuarios iniciales (los mismos que en app.js)
+    const usuariosBase = [
+      { usuario: "admin", contraseña: "1234", rol: "admin" },
+      { usuario: "alto1", contraseña: "1234", rol: "alto" },
+      { usuario: "medio1", contraseña: "1234", rol: "medio" },
+      { usuario: "basico1", contraseña: "1234", rol: "básico" },
+    ];
+
+    // Guardar base de usuarios si no existe
+    if (!localStorage.getItem("usuarios")) {
+      localStorage.setItem("usuarios", JSON.stringify(usuariosBase));
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+      const user = usuarios.find(u => u.usuario === username && u.contraseña === password);
+
+      if (user) {
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        window.location.href = "dashboard.html";
+      } else {
+        errorMsg.classList.remove("hidden");
+        setTimeout(() => errorMsg.classList.add("hidden"), 3000);
+      }
+    });
+  </script>
 </body>
 </html>
