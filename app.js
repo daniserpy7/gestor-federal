@@ -1,358 +1,61 @@
 // Estado global
-let S = {
-    u: null,
-    us: [{id:1, username:'admin', password:'admin123', role:'admin', name:'Admin'}],
-    tm: {},
-    cd: {},
-    rc: [],
-    ac: [],
-    cm: [],
-    v: 'login',
-    cp: false
-};
+let S={u:null,us:[{id:1,username:'admin',password:'admin123',role:'admin',name:'Admin'}],tm:{},cd:{},rc:[],ac:[],cm:[],v:'login',cp:false};
+let ti=null;
 
-let ti = null;
-
-// Funciones de almacenamiento
-function sv() {
-    try {
-        localStorage.setItem('gf', JSON.stringify({
-            us: S.us,
-            rc: S.rc,
-            ac: S.ac,
-            cm: S.cm
-        }));
-    } catch(e) {}
-}
-
-function ld() {
-    try {
-        let d = JSON.parse(localStorage.getItem('gf'));
-        if (d) {
-            S.us = d.us || S.us;
-            S.rc = d.rc || [];
-            S.ac = d.ac || [];
-            S.cm = d.cm || [];
-        }
-    } catch(e) {}
-}
+// Almacenamiento
+function sv(){try{localStorage.setItem('gf',JSON.stringify({us:S.us,rc:S.rc,ac:S.ac,cm:S.cm}))}catch(e){}}
+function ld(){try{let d=JSON.parse(localStorage.getItem('gf'));if(d){S.us=d.us||S.us;S.rc=d.rc||[];S.ac=d.ac||[];S.cm=d.cm||[]}}catch(e){}}
 
 // Formatear tiempo
-function fmt(s) {
-    let h = Math.floor(s / 3600);
-    let m = Math.floor((s % 3600) / 60);
-    let sec = s % 60;
-    return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
-}
+function fmt(s){let h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`}
 
 // Login
-function login(e) {
-    e.preventDefault();
-    let u = document.getElementById('u').value;
-    let p = document.getElementById('p').value;
-    let user = S.us.find(x => x.username === u && x.password === p);
-    
-    if (user) {
-        S.u = user;
-        S.v = user.role === 'admin' ? 'admin' : user.role === 'alto' ? 'alto' : 'bajo';
-        r();
-        sti();
-    } else {
-        alert('Credenciales incorrectas');
-    }
-}
+function login(e){e.preventDefault();let u=document.getElementById('u').value,p=document.getElementById('p').value,user=S.us.find(x=>x.username===u&&x.password===p);if(user){S.u=user;S.v=user.role==='admin'?'admin':user.role==='alto'?'alto':'bajo';r();sti()}else alert('Credenciales incorrectas')}
 
 // Logout
-function logout() {
-    S.u = null;
-    S.v = 'login';
-    if (ti) {
-        clearInterval(ti);
-        ti = null;
-    }
-    r();
-}
+function logout(){S.u=null;S.v='login';if(ti){clearInterval(ti);ti=null}r()}
 
-// Iniciar interval del timer
-function sti() {
-    if (ti) return;
-    ti = setInterval(() => {
-        let hasActive = false;
-        Object.keys(S.tm).forEach(uid => {
-            if (S.tm[uid].r) {
-                S.tm[uid].e++;
-                hasActive = true;
-            }
-        });
-        if (hasActive) {
-            document.querySelectorAll('.tm').forEach(el => {
-                let uid = el.dataset.uid;
-                if (S.tm[uid]) el.textContent = fmt(S.tm[uid].e);
-            });
-        }
-    }, 1000);
-}
+// Timer interval
+function sti(){if(ti)return;ti=setInterval(()=>{let h=false;Object.keys(S.tm).forEach(u=>{if(S.tm[u].r){S.tm[u].e++;h=true}});if(h)document.querySelectorAll('.tm').forEach(el=>{let u=el.dataset.uid;if(S.tm[u])el.textContent=fmt(S.tm[u].e)})},1000)}
 
 // Generar código
-function gc() {
-    let c = Math.random().toString(36).substring(2, 8).toUpperCase();
-    S.cd[c] = {ai: S.u.id, an: S.u.name};
-    alert('Código generado: ' + c);
-    r();
-}
+function gc(){let c=Math.random().toString(36).substring(2,8).toUpperCase();S.cd[c]={ai:S.u.id,an:S.u.name};alert('Código: '+c);r()}
 
 // Iniciar timer
-function st() {
-    let c = document.getElementById('cd').value.toUpperCase();
-    if (!S.cd[c]) {
-        alert('Código inválido');
-        return;
-    }
-    S.tm[S.u.id] = {e: 0, r: true, ai: S.cd[c].ai, an: S.cd[c].an};
-    r();
-}
+function st(){let c=document.getElementById('cd').value.toUpperCase();if(!S.cd[c]){alert('Código inválido');return}S.tm[S.u.id]={e:0,r:true,ai:S.cd[c].ai,an:S.cd[c].an};r()}
 
-// Detener propio timer
-function stp() {
-    let t = S.tm[S.u.id];
-    if (t) {
-        let sec = t.e;
-        let m = Math.floor(sec / 60);
-        let h = Math.floor(m / 60);
-        S.rc.push({
-            id: S.rc.length + 1,
-            uid: S.u.id,
-            un: S.u.name,
-            ai: t.ai,
-            an: t.an,
-            h: h,
-            m: m % 60,
-            s: sec % 60,
-            d: new Date().toISOString()
-        });
-        delete S.tm[S.u.id];
-        sv();
-        alert(`Registrado: ${h}h ${m % 60}m ${sec % 60}s`);
-        r();
-    }
-}
+// Detener timer propio
+function stp(){let t=S.tm[S.u.id];if(t){let sec=t.e,m=Math.floor(sec/60),h=Math.floor(m/60);S.rc.push({id:S.rc.length+1,uid:S.u.id,un:S.u.name,ai:t.ai,an:t.an,h:h,m:m%60,s:sec%60,d:new Date().toISOString()});delete S.tm[S.u.id];sv();alert(`Registrado: ${h}h ${m%60}m ${sec%60}s`);r()}}
 
-// Detener timer de usuario
-function stpu(uid) {
-    let t = S.tm[uid];
-    if (t) {
-        let sec = t.e;
-        let m = Math.floor(sec / 60);
-        let h = Math.floor(m / 60);
-        let u = S.us.find(x => x.id === uid);
-        S.rc.push({
-            id: S.rc.length + 1,
-            uid: uid,
-            un: u.name,
-            ai: t.ai,
-            an: t.an,
-            h: h,
-            m: m % 60,
-            s: sec % 60,
-            d: new Date().toISOString()
-        });
-        delete S.tm[uid];
-        sv();
-        alert(`Detenido: ${u.name} - ${h}h ${m % 60}m ${sec % 60}s`);
-        r();
-    }
-}
+// Detener timer usuario
+function stpu(uid){let t=S.tm[uid];if(t){let sec=t.e,m=Math.floor(sec/60),h=Math.floor(m/60),u=S.us.find(x=>x.id===uid);S.rc.push({id:S.rc.length+1,uid:uid,un:u.name,ai:t.ai,an:t.an,h:h,m:m%60,s:sec%60,d:new Date().toISOString()});delete S.tm[uid];sv();alert(`Detenido: ${u.name}`);r()}}
 
 // Agregar usuario
-function au(e) {
-    e.preventDefault();
-    let n = document.getElementById('un').value;
-    let u = document.getElementById('uu').value;
-    let p = document.getElementById('up').value;
-    let ro = document.getElementById('ur').value;
-    
-    if (S.us.find(x => x.username === u)) {
-        alert('Usuario ya existe');
-        return;
-    }
-    
-    S.us.push({
-        id: S.us.length + 1,
-        username: u,
-        password: p,
-        role: ro,
-        name: n
-    });
-    sv();
-    alert('Usuario creado');
-    r();
-}
+function au(e){e.preventDefault();let n=document.getElementById('un').value,u=document.getElementById('uu').value,p=document.getElementById('up').value,ro=document.getElementById('ur').value;if(S.us.find(x=>x.username===u)){alert('Usuario existe');return}S.us.push({id:S.us.length+1,username:u,password:p,role:ro,name:n});sv();alert('Usuario creado');r()}
 
 // Agregar acta
-function aa(e) {
-    e.preventDefault();
-    let uid = parseInt(document.getElementById('auid').value);
-    let mot = document.getElementById('amot').value;
-    let u = S.us.find(x => x.id === uid);
-    
-    S.ac.push({
-        id: S.ac.length + 1,
-        uid: uid,
-        un: u.name,
-        mot: mot,
-        by: S.u.name,
-        d: new Date().toISOString()
-    });
-    sv();
-    alert('Acta creada');
-    r();
-}
+function aa(e){e.preventDefault();let uid=parseInt(document.getElementById('auid').value),mot=document.getElementById('amot').value,u=S.us.find(x=>x.id===uid);S.ac.push({id:S.ac.length+1,uid:uid,un:u.name,mot:mot,by:S.u.name,d:new Date().toISOString()});sv();alert('Acta creada');r()}
 
 // Agregar comunicado
-function acm(e) {
-    e.preventDefault();
-    if (S.cm.length >= 10) {
-        alert('Máximo 10 comunicados');
-        return;
-    }
-    
-    let t = document.getElementById('cmt').value;
-    let c = document.getElementById('cmc').value;
-    
-    S.cm.push({
-        id: S.cm.length + 1,
-        t: t,
-        c: c,
-        by: S.u.name,
-        d: new Date().toISOString()
-    });
-    sv();
-    alert('Comunicado creado');
-    r();
-}
+function acm(e){e.preventDefault();if(S.cm.length>=10){alert('Máximo 10');return}let t=document.getElementById('cmt').value,c=document.getElementById('cmc').value;S.cm.push({id:S.cm.length+1,t:t,c:c,by:S.u.name,d:new Date().toISOString()});sv();alert('Comunicado creado');r()}
 
 // Eliminar comunicado
-function dcm(id) {
-    if (confirm('¿Eliminar?')) {
-        S.cm = S.cm.filter(x => x.id !== id);
-        sv();
-        r();
-    }
-}
+function dcm(id){if(confirm('¿Eliminar?')){S.cm=S.cm.filter(x=>x.id!==id);sv();r()}}
 
 // Cambiar contraseña
-function cp(e) {
-    e.preventDefault();
-    let curr = document.getElementById('cpc').value;
-    let newp = document.getElementById('cpn').value;
-    
-    if (S.u.password !== curr) {
-        alert('Contraseña actual incorrecta');
-        return;
-    }
-    if (newp.length < 3) {
-        alert('Mínimo 3 caracteres');
-        return;
-    }
-    
-    let u = S.us.find(u => u.id === S.u.id);
-    u.password = newp;
-    S.u.password = newp;
-    S.cp = false;
-    sv();
-    alert('✅ Contraseña cambiada');
-    r();
+function cp(e){e.preventDefault();let curr=document.getElementById('cpc').value,newp=document.getElementById('cpn').value;if(S.u.password!==curr){alert('Contraseña incorrecta');return}if(newp.length<3){alert('Mínimo 3 caracteres');return}let u=S.us.find(u=>u.id===S.u.id);u.password=newp;S.u.password=newp;S.cp=false;sv();alert('✅ Contraseña cambiada');r()}
+
+// Render
+function r(){
+let a=document.getElementById('app');
+if(S.v==='login')a.innerHTML=`<div class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4"><div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md"><h1 class="text-4xl font-bold text-blue-900 text-center mb-2">GestorFederal</h1><p class="text-gray-600 text-center mb-6">Control de Tiempos</p><form onsubmit="login(event)" class="space-y-4"><input type="text" id="u" placeholder="Usuario" required class="w-full px-4 py-3 border rounded-lg"><input type="password" id="p" placeholder="Contraseña" required class="w-full px-4 py-3 border rounded-lg"><button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Ingresar</button></form><div class="mt-4 p-3 bg-gray-50 rounded text-sm"><p>Prueba: <b>admin / admin123</b></p></div></div></div>`;
+else if(S.v==='admin')a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-900 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Admin</h1><div class="flex gap-2"><button onclick="S.cp=true;r()" class="bg-blue-700 px-4 py-2 rounded">🔑</button><button onclick="logout()" class="bg-blue-700 px-4 py-2 rounded">Salir</button></div></div></nav>${S.cp?`<div class="container mx-auto p-4"><div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto"><h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2><form onsubmit="cp(event)" class="space-y-4"><input type="password" id="cpc" placeholder="Actual" required class="w-full px-4 py-2 border rounded"><input type="password" id="cpn" placeholder="Nueva" required class="w-full px-4 py-2 border rounded"><div class="flex gap-2"><button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded">Guardar</button><button type="button" onclick="S.cp=false;r()" class="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button></div></form></div></div>`:`<div class="container mx-auto p-4"><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"><button onclick="S.v='users';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">👥 Usuarios</h3></button><button onclick="S.v='actas';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">📄 Actas</h3></button><button onclick="S.v='bit';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">🏆 Bitácora</h3></button><button onclick="S.v='coms';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg"><h3 class="font-bold">📢 Comunicados</h3></button></div><div class="bg-white rounded-lg shadow p-6"><h2 class="text-2xl font-bold mb-4">Estadísticas</h2><div class="grid grid-cols-3 gap-4"><div class="bg-blue-50 p-4 rounded"><p class="text-sm">Usuarios</p><p class="text-3xl font-bold text-blue-600">${S.us.length}</p></div><div class="bg-green-50 p-4 rounded"><p class="text-sm">Registros</p><p class="text-3xl font-bold text-green-600">${S.rc.length}</p></div><div class="bg-purple-50 p-4 rounded"><p class="text-sm">Actas</p><p class="text-3xl font-bold text-purple-600">${S.ac.length}</p></div></div></div></div>`}</div>`;
+else if(S.v==='users')a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-900 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Usuarios</h1><button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button></div></nav><div class="container mx-auto p-4"><div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">Crear Usuario</h2><form onsubmit="au(event)" class="grid grid-cols-2 gap-4"><input type="text" id="un" placeholder="Nombre" required class="px-4 py-2 border rounded"><input type="text" id="uu" placeholder="Usuario" required class="px-4 py-2 border rounded"><input type="password" id="up" placeholder="Contraseña" required class="px-4 py-2 border rounded"><select id="ur" class="px-4 py-2 border rounded"><option value="bajo">Cargo Bajo</option><option value="alto">Cargo Alto</option><option value="admin">Admin</option></select><button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded">Crear</button></form></div><div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold mb-4">Lista</h2><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">Nombre</th><th class="px-4 py-2 text-left">Usuario</th><th class="px-4 py-2 text-left">Rol</th><th class="px-4 py-2 text-left">Password</th></tr></thead><tbody>${S.us.map(u=>`<tr class="border-t"><td class="px-4 py-2">${u.name}</td><td class="px-4 py-2">${u.username}</td><td class="px-4 py-2"><span class="px-2 py-1 text-xs rounded bg-blue-100">${u.role}</span></td><td class="px-4 py-2">${u.password}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+else if(S.v==='actas'){let ma=S.ac.filter(ac=>S.u.role==='admin'||ac.uid===S.u.id);a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-900 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Actas</h1><button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button></div></nav><div class="container mx-auto p-4"><div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">Crear Acta</h2><form onsubmit="aa(event)" class="space-y-4"><select id="auid" class="w-full px-4 py-2 border rounded" required><option value="">Seleccionar</option>${S.us.filter(u=>u.role!=='admin').map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select><textarea id="amot" placeholder="Motivo" class="w-full px-4 py-2 border rounded h-32" required></textarea><button type="submit" class="bg-red-600 text-white px-6 py-2 rounded">Crear</button></form></div><div class="bg-white rounded-lg shadow p-6">${ma.length===0?'<p class="text-gray-500 text-center py-4">Sin actas</p>':ma.map(ac=>`<div class="border rounded p-4 mb-4 bg-red-50"><h3 class="font-bold">${ac.un}</h3><p class="text-sm">${ac.by} • ${new Date(ac.d).toLocaleDateString()}</p><p class="mt-2">${ac.mot}</p></div>`).join('')}</div></div></div>`}
+else if(S.v==='bit')a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-900 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Bitácora</h1><button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button></div></nav><div class="container mx-auto p-4"><div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold mb-4">Registros</h2><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">Fecha</th><th class="px-3 py-2 text-left">Trabajador</th><th class="px-3 py-2 text-left">Supervisor</th><th class="px-3 py-2 text-left">Tiempo</th></tr></thead><tbody>${S.rc.length===0?'<tr><td colspan="4" class="px-3 py-8 text-center">Sin registros</td></tr>':S.rc.map(r=>`<tr class="border-t"><td class="px-3 py-2">${new Date(r.d).toLocaleString()}</td><td class="px-3 py-2">${r.un}</td><td class="px-3 py-2">${r.an}</td><td class="px-3 py-2 font-medium">${r.h}h ${r.m}m ${r.s}s</td></tr>`).join('')}</tbody></table></div></div></div>`;
+else if(S.v==='coms')a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-900 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Comunicados</h1><button onclick="S.v='admin';r()" class="bg-blue-700 px-4 py-2 rounded">Volver</button></div></nav><div class="container mx-auto p-4"><div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">Crear</h2><form onsubmit="acm(event)" class="space-y-4"><input type="text" id="cmt" placeholder="Título" required class="w-full px-4 py-2 border rounded"><textarea id="cmc" placeholder="Contenido" class="w-full px-4 py-2 border rounded h-32" required></textarea><button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">Publicar</button></form></div><div class="bg-white rounded-lg shadow p-6">${S.cm.length===0?'<p class="text-gray-500 text-center py-4">Sin comunicados</p>':S.cm.map(c=>`<div class="border rounded p-4 mb-4 bg-gray-50"><div class="flex justify-between"><div><h3 class="font-bold">${c.t}</h3><p class="text-sm">${c.by}</p></div><button onclick="dcm(${c.id})" class="text-red-600">🗑️</button></div><p class="mt-2">${c.c}</p></div>`).join('')}</div></div></div>`;
+else if(S.v==='bajo'){let t=S.tm[S.u.id],mr=S.rc.filter(r=>r.uid===S.u.id),totS=mr.reduce((s,r)=>(s+(r.h*3600+r.m*60+r.s)),0),totH=Math.floor(totS/3600),totM=Math.floor((totS%3600)/60),totSe=totS%60;a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-green-700 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">${S.u.name}</h1><div class="flex gap-2"><button onclick="S.cp=true;r()" class="bg-green-600 px-4 py-2 rounded">🔑</button><button onclick="logout()" class="bg-green-600 px-4 py-2 rounded">Salir</button></div></div></nav><div class="container mx-auto p-4">${S.cp?`<div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto mb-6"><h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2><form onsubmit="cp(event)" class="space-y-4"><input type="password" id="cpc" placeholder="Actual" required class="w-full px-4 py-2 border rounded"><input type="password" id="cpn" placeholder="Nueva" required class="w-full px-4 py-2 border rounded"><div class="flex gap-2"><button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded">Guardar</button><button type="button" onclick="S.cp=false;r()" class="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button></div></form></div>`:''}<div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-2xl font-bold mb-4">⏱️ Control</h2>${!t?`<div class="space-y-4"><p>Solicita código a tu supervisor:</p><div class="flex gap-2"><input type="text" id="cd" placeholder="CÓDIGO" class="flex-1 px-4 py-3 border-2 rounded uppercase font-mono"><button onclick="st()" class="bg-green-600 text-white px-6 py-3 rounded">▶️ Iniciar</button></div></div>`:`<div class="space-y-4"><div class="bg-green-50 p-6 rounded text-center"><p class="text-5xl font-bold text-green-700 tm" data-uid="${S.u.id}">${fmt(t.e)}</p><p class="text-sm mt-2">Supervisor: ${t.an}</p></div><div class="bg-yellow-50 p-4"><p class="text-sm">⚠️ Solo tu supervisor puede detener</p></div></div>`}</div><div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">💰 Total</h2><div class="bg-blue-50 p-6 rounded text-center"><p class="text-5xl font-bold text-blue-700">${totH}h ${totM}m ${totSe}s</p></div></div><div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold mb-4">Historial</h2><table class="w-full"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left">Fecha</th><th class="px-4 py-2 text-left">Tiempo</th><th class="px-4 py-2 text-left">Supervisor</th></tr></thead><tbody>${mr.length===0?'<tr><td colspan="3" class="px-4 py-8 text-center">Sin registros</td></tr>':mr.map(r=>`<tr class="border-t"><td class="px-4 py-3">${new Date(r.d).toLocaleString()}</td><td class="px-4 py-3 font-medium">${r.h}h ${r.m}m ${r.s}s</td><td class="px-4 py-3">${r.an}</td></tr>`).join('')}</tbody></table></div></div></div>`}
+else if(S.v==='alto'){let act=Object.entries(S.tm).filter(([uid])=>{let u=S.us.find(x=>x.id===parseInt(uid));return u&&u.role==='bajo'}).map(([uid,t])=>{let u=S.us.find(x=>x.id===parseInt(uid));return{...t,uid:parseInt(uid),un:u?.name}}),mr=S.rc.filter(r=>r.ai===S.u.id),totS=mr.reduce((s,r)=>(s+(r.h*3600+r.m*60+r.s)),0),totH=Math.floor(totS/3600),totM=Math.floor((totS%3600)/60),totSe=totS%60;a.innerHTML=`<div class="min-h-screen bg-gray-100"><nav class="bg-blue-700 text-white p-4"><div class="container mx-auto flex justify-between"><h1 class="text-xl font-bold">Alto - ${S.u.name}</h1><div class="flex gap-2"><button onclick="S.cp=true;r()" class="bg-blue-600 px-4 py-2 rounded">🔑</button><button onclick="logout()" class="bg-blue-600 px-4 py-2 rounded">Salir</button></div></div></nav><div class="container mx-auto p-4">${S.cp?`<div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto mb-6"><h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2><form onsubmit="cp(event)" class="space-y-4"><input type="password" id="cpc" placeholder="Actual" required class="w-full px-4 py-2 border rounded"><input type="password" id="cpn" placeholder="Nueva" required class="w-full px-4 py-2 border rounded"><div class="flex gap-2"><button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded">Guardar</button><button type="button" onclick="S.cp=false;r()" class="flex-1 bg-gray-500 text-white py-2 rounded">Cancelar</button></div></form></div>`:''}<div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">💰 Mi Total</h2><div class="bg-green-50 p-6 rounded text-center"><p class="text-5xl font-bold text-green-700">${totH}h ${totM}m ${totSe}s</p><p class="text-sm mt-2">${mr.length} registros</p></div></div><div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">🔑 Códigos</h2><button onclick="gc()" class="w-full bg-blue-600 text-white py-3 rounded mb-4">➕ Generar</button><div class="space-y-2">${Object.entries(S.cd).filter(([c,d])=>d.ai===S.u.id).map(([c])=>`<div class="bg-blue-50 p-3 rounded"><span class="font-mono font-bold text-xl">${c}</span></div>`).join('')||'<p class="text-gray-500 text-sm">Sin códigos</p>'}</div></div><div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold mb-4">👥 Activos</h2>${act.length===0?'<p class="text-gray-500 text-center py-8">Sin trabajadores</p>':`<div class="grid md:grid-cols-3 gap-4">${act.map(a=>`<div class="border-2 rounded p-4 bg-green-50"><h3 class="font-bold mb-2">${a.un}</h3><p class="text-4xl font-bold text-green-700 tm" data-uid="${a.uid}">${fmt(a.e)}</p><button onclick="stpu(${a.uid})" class="w-full bg-red-600 text-white py-2 rounded mt-2">⏹️ Detener</button></div>`).join('')}</div>`}</div></div></div>`}
 }
 
-// Render principal
-function r() {
-    let a = document.getElementById('app');
-    
-    if (S.v === 'login') {
-        a.innerHTML = `
-            <div class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-                    <h1 class="text-4xl font-bold text-blue-900 text-center mb-2">GestorFederal</h1>
-                    <p class="text-gray-600 text-center mb-6">Sistema de Control de Tiempos</p>
-                    <form onsubmit="login(event)" class="space-y-4">
-                        <input type="text" id="u" placeholder="Usuario" required class="w-full px-4 py-3 border rounded-lg">
-                        <input type="password" id="p" placeholder="Contraseña" required class="w-full px-4 py-3 border rounded-lg">
-                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Ingresar</button>
-                    </form>
-                    <div class="mt-4 p-3 bg-gray-50 rounded text-sm">
-                        <p>Prueba: <b>admin</b> / <b>admin123</b></p>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (S.v === 'admin') {
-        a.innerHTML = `
-            <div class="min-h-screen bg-gray-100">
-                <nav class="bg-blue-900 text-white p-4">
-                    <div class="container mx-auto flex justify-between items-center">
-                        <h1 class="text-xl font-bold">GestorFederal - Admin</h1>
-                        <div class="flex gap-2">
-                            <button onclick="S.cp=true;r()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-600">🔑</button>
-                            <button onclick="logout()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-600">Salir</button>
-                        </div>
-                    </div>
-                </nav>
-                ${S.cp ? `
-                    <div class="container mx-auto p-4">
-                        <div class="bg-white rounded-lg shadow p-6 max-w-md mx-auto">
-                            <h2 class="text-xl font-bold mb-4">🔑 Cambiar Contraseña</h2>
-                            <form onsubmit="cp(event)" class="space-y-4">
-                                <input type="password" id="cpc" placeholder="Contraseña actual" required class="w-full px-4 py-2 border rounded">
-                                <input type="password" id="cpn" placeholder="Nueva contraseña" required class="w-full px-4 py-2 border rounded">
-                                <div class="flex gap-2">
-                                    <button type="submit" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">Guardar</button>
-                                    <button type="button" onclick="S.cp=false;r()" class="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancelar</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="container mx-auto p-4">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <button onclick="S.v='users';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
-                                <h3 class="font-bold">👥 Usuarios</h3>
-                            </button>
-                            <button onclick="S.v='actas';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
-                                <h3 class="font-bold">📄 Actas</h3>
-                            </button>
-                            <button onclick="S.v='bit';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
-                                <h3 class="font-bold">🏆 Bitácora</h3>
-                            </button>
-                            <button onclick="S.v='coms';r()" class="bg-white p-6 rounded-lg shadow hover:shadow-lg">
-                                <h3 class="font-bold">📢 Comunicados</h3>
-                            </button>
-                        </div>
-                        <div class="bg-white rounded-lg shadow p-6">
-                            <h2 class="text-2xl font-bold mb-4">Estadísticas</h2>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="bg-blue-50 p-4 rounded">
-                                    <p class="text-sm text-gray-600">Usuarios</p>
-                                    <p class="text-3xl font-bold text-blue-600">${S.us.length}</p>
-                                </div>
-                                <div class="bg-green-50 p-4 rounded">
-                                    <p class="text-sm text-gray-600">Registros</p>
-                                    <p class="text-3xl font-bold text-green-600">${S.rc.length}</p>
-                                </div>
-                                <div class="bg-purple-50 p-4 rounded">
-                                    <p class="text-sm text-gray-600">Actas</p>
-                                    <p class="text-3xl font-bold text-purple-600">${S.ac.length}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `}
-            </div>
-        `;
-    }
-    // Aquí irían las demás vistas (users, actas, bit, coms, bajo, alto)
-    // Las agrego en el siguiente mensaje
-}
-
-// Cargar datos al inicio
-ld();
-r();
+ld();r();
