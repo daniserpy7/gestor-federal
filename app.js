@@ -1,6 +1,13 @@
 // === app.js ===
 // Control de vistas, roles y módulos del panel principal
 
+// Evitar bucle en index.html (GitHub Pages)
+if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/")) {
+  // Si estamos en la página de login, no ejecutar lógica del dashboard
+  console.log("Modo login: app.js detenido para evitar bucle.");
+  return;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   const logoutBtn = document.getElementById("logoutBtn");
