@@ -1,0 +1,3 @@
+.card {
+  @apply bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition;
+}
