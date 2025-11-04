@@ -1,24 +1,19 @@
 // === app.js ===
 // Control de vistas, roles y módulos del panel principal
 
-// Evitar bucle en index.html (GitHub Pages)
-if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/")) {
-  // Si estamos en la página de login, no ejecutar lógica del dashboard
-  console.log("Modo login: app.js detenido para evitar bucle.");
-  return;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   const logoutBtn = document.getElementById("logoutBtn");
   const navBtns = document.querySelectorAll(".nav-btn");
   const sections = document.querySelectorAll(".view-section");
 
-  // Si no hay usuario logeado, redirige al login
+  // Si no hay usuario logeado, regresa al login
   if (!currentUser) {
     window.location.href = "index.html";
     return;
   }
+
+  console.log("Usuario actual:", currentUser);
 
   // Mostrar/ocultar opciones según rol
   if (currentUser.rol !== "admin") {
@@ -26,23 +21,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Botón cerrar sesión
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("currentUser");
-    window.location.href = "index.html";
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    });
+  }
 
   // Navegación entre vistas
   navBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const view = btn.dataset.view;
+
+      // Oculta todas las secciones
       sections.forEach(sec => sec.classList.add("hidden"));
+      // Muestra la seleccionada
       document.getElementById(`view-${view}`).classList.remove("hidden");
 
-      // Cargar contenido dinámico
+      // Carga dinámica según vista
       if (view === "tiempo") renderControlTiempo();
       if (view === "usuarios") renderUsuarios();
     });
   });
+
+  // Mostrar vista inicial
+  document.getElementById("view-panel").classList.remove("hidden");
 
   // === Módulo Control de Tiempo ===
   function renderControlTiempo() {
@@ -52,7 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const registros = JSON.parse(localStorage.getItem("tiempos")) || [];
     const misRegistros = registros.filter(r => r.usuario === currentUser.usuario);
 
-    // Formulario de registro de tiempo
     const form = document.createElement("div");
     form.className = "bg-white shadow rounded p-4 mb-6";
     form.innerHTML = `
@@ -91,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const registrosActuales = (currentUser.rol === "admin" || currentUser.rol === "alto")
         ? registros
         : misRegistros;
+
       registrosActuales.slice().reverse().forEach(r => {
         const tr = document.createElement("tr");
         tr.className = "border-b";
@@ -103,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tbody.appendChild(tr);
       });
     }
+
     actualizarTabla();
 
     document.getElementById("entradaBtn").addEventListener("click", () => registrarTiempo("Entrada"));
@@ -131,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // === Módulo Gestión de Usuarios (solo admin) ===
+  // === Módulo Usuarios (solo admin) ===
   function renderUsuarios() {
     const container = document.getElementById("usuarios-content");
     container.innerHTML = "";
@@ -148,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
       { usuario: "basico1", contraseña: "1234", rol: "básico" },
     ];
 
-    // Formulario nuevo usuario
     const form = document.createElement("div");
     form.className = "bg-white shadow rounded p-4 mb-6";
     form.innerHTML = `
@@ -167,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     container.appendChild(form);
 
-    // Tabla de usuarios
     const tabla = document.createElement("div");
     tabla.className = "bg-white shadow rounded p-4";
     tabla.innerHTML = `
@@ -204,37 +206,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.querySelectorAll(".borrar").forEach(btn => {
         btn.addEventListener("click", e => {
-          const i = e.target.dataset.index;
-          usuarios.splice(i, 1);
-          localStorage.setItem("usuarios", JSON.stringify(usuarios));
-          actualizarUsuarios();
-        });
-      });
-    }
-    actualizarUsuarios();
-
-    document.getElementById("agregarUsuario").addEventListener("click", () => {
-      const nuevoUsuario = document.getElementById("nuevoUsuario").value.trim();
-      const nuevoPass = document.getElementById("nuevoPass").value.trim();
-      const nuevoRol = document.getElementById("nuevoRol").value;
-
-      if (nuevoUsuario === "" || nuevoPass === "") {
-        alert("Completa todos los campos.");
-        return;
-      }
-
-      if (usuarios.some(u => u.usuario === nuevoUsuario)) {
-        alert("Ese usuario ya existe.");
-        return;
-      }
-
-      usuarios.push({ usuario: nuevoUsuario, contraseña: nuevoPass, rol: nuevoRol });
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
-      actualizarUsuarios();
-
-      document.getElementById("nuevoUsuario").value = "";
-      document.getElementById("nuevoPass").value = "";
-      document.getElementById("nuevoRol").value = "básico";
-    });
-  }
-});
+          const i = e.target.datase
