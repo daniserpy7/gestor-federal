@@ -6,79 +6,64 @@
   <title>Gestor Federal - Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
 
-  <!-- 🔵 Barra superior -->
-  <header class="fixed top-0 left-0 w-full bg-blue-700 text-white shadow z-20">
-    <div class="flex justify-between items-center px-6 py-3">
-      <h1 class="text-xl font-semibold">Gestor Federal</h1>
-      <button id="logoutBtn" class="bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded text-sm">
-        Cerrar sesión
-      </button>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Barra superior fija -->
+  <header class="bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-xl font-bold">Gestor Federal</h1>
+      <nav class="space-x-3 flex items-center">
+        <button class="nav-btn hover:bg-blue-800 px-3 py-1 rounded transition" data-view="panel">Panel principal</button>
+        <button class="nav-btn hover:bg-blue-800 px-3 py-1 rounded transition" data-view="actas">Actas</button>
+        <button class="nav-btn hover:bg-blue-800 px-3 py-1 rounded transition" data-view="comunicados">Comunicados</button>
+        <button class="nav-btn hover:bg-blue-800 px-3 py-1 rounded transition" data-view="tiempo">Control de tiempo</button>
+        <button class="nav-btn admin-only hover:bg-blue-800 px-3 py-1 rounded transition" data-view="usuarios">Usuarios</button>
+        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded ml-4">Cerrar sesión</button>
+      </nav>
     </div>
   </header>
 
-  <!-- 🧭 Contenedor general -->
-  <div class="flex pt-16 min-h-screen">
-
-    <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col fixed h-full pt-4">
-      <nav class="flex-1 px-3 space-y-2">
-        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800" data-view="panel">
-          <i data-lucide="layout-dashboard" class="w-5 h-5 mr-2"></i> Panel principal
-        </button>
-        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800" data-view="actas">
-          <i data-lucide="file-text" class="w-5 h-5 mr-2"></i> Actas
-        </button>
-        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800" data-view="comunicados">
-          <i data-lucide="megaphone" class="w-5 h-5 mr-2"></i> Comunicados
-        </button>
-        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800" data-view="tiempo">
-          <i data-lucide="clock" class="w-5 h-5 mr-2"></i> Control de tiempo
-        </button>
-        <button class="nav-btn flex items-center w-full px-3 py-2 rounded hover:bg-gray-800 admin-only" data-view="usuarios">
-          <i data-lucide="users" class="w-5 h-5 mr-2"></i> Usuarios
-        </button>
-      </nav>
-      <footer class="text-xs text-center py-4 text-gray-400 border-t border-gray-800">
-        © 2025 Gestor Federal
-      </footer>
-    </aside>
-
-    <!-- Contenido dinámico -->
-    <main id="main-content" class="flex-1 ml-64 p-6">
-      <div id="view-panel" class="view-section">
-        <h2 class="text-2xl font-semibold mb-4">Panel principal</h2>
-        <p class="text-gray-700">Selecciona una opción del menú para comenzar.</p>
+  <!-- Contenedor principal -->
+  <main class="flex-1 pt-20 px-4 pb-10 max-w-7xl mx-auto w-full">
+    
+    <!-- Vista: Panel principal -->
+    <section id="view-panel" class="view-section">
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-2xl font-semibold mb-4">Bienvenido al panel principal</h2>
+        <p class="text-gray-600">Selecciona una opción del menú superior para comenzar.</p>
       </div>
+    </section>
 
-      <div id="view-actas" class="view-section hidden">
+    <!-- Vista: Actas -->
+    <section id="view-actas" class="view-section hidden">
+      <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-2xl font-semibold mb-4">Actas</h2>
-        <p>Aquí podrás gestionar actas (en desarrollo).</p>
+        <p class="text-gray-600">Próximamente aquí podrás gestionar las actas.</p>
       </div>
+    </section>
 
-      <div id="view-comunicados" class="view-section hidden">
+    <!-- Vista: Comunicados -->
+    <section id="view-comunicados" class="view-section hidden">
+      <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-2xl font-semibold mb-4">Comunicados</h2>
-        <p>Aquí podrás publicar y consultar comunicados.</p>
+        <p class="text-gray-600">Próximamente aquí podrás administrar los comunicados internos.</p>
       </div>
+    </section>
 
-      <div id="view-tiempo" class="view-section hidden">
-        <h2 class="text-2xl font-semibold mb-4">Control de tiempo</h2>
-        <div id="tiempo-content"></div>
-      </div>
+    <!-- Vista: Control de tiempo -->
+    <section id="view-tiempo" class="view-section hidden">
+      <div id="tiempo-content"></div>
+    </section>
 
-      <div id="view-usuarios" class="view-section hidden">
-        <h2 class="text-2xl font-semibold mb-4">Gestión de usuarios</h2>
-        <div id="usuarios-content"></div>
-      </div>
-    </main>
-  </div>
+    <!-- Vista: Usuarios -->
+    <section id="view-usuarios" class="view-section hidden admin-only">
+      <div id="usuarios-content"></div>
+    </section>
+
+  </main>
 
   <script src="app.js"></script>
-  <script>
-    lucide.createIcons();
-  </script>
 </body>
 </html>
