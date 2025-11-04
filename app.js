@@ -206,4 +206,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.querySelectorAll(".borrar").forEach(btn => {
         btn.addEventListener("click", e => {
-          const i = e.target.datase
+          const i = e.target.dataset.index;
+          usuarios.splice(i, 1);
+          localStorage.setItem("usuarios", JSON.stringify(usuarios));
+          actualizarUsuarios();
+        });
+      });
+    }
+    actualizarUsuarios();
+
+    document.getElementById("agregarUsuario").addEventListener("click", () => {
+      const nuevoUsuario = document.getElementById("nuevoUsuario").value.trim();
+      const nuevoPass = document.getElementById("nuevoPass").value.trim();
+      const nuevoRol = document.getElementById("nuevoRol").value;
+
+      if (nuevoUsuario === "" || nuevoPass === "") {
+        alert("Completa todos los campos.");
+        return;
+      }
+
+      if (usuarios.some(u => u.usuario === nuevoUsuario)) {
+        alert("Ese usuario ya existe.");
+        return;
+      }
+
+      usuarios.push({ usuario: nuevoUsuario, contraseña: nuevoPass, rol: nuevoRol });
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      actualizarUsuarios();
+
+      document.getElementById("nuevoUsuario").value = "";
+      document.getElementById("nuevoPass").value = "";
+      document.getElementById("nuevoRol").value = "básico";
+    });
+  }
+});
