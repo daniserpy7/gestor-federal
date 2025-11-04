@@ -1,28 +1,36 @@
-// === app.js ===
-// Control de vistas, roles y módulos del panel principal
-
 document.addEventListener("DOMContentLoaded", () => {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const logoutBtn = document.getElementById("logoutBtn");
-  const navBtns = document.querySelectorAll(".nav-btn");
-  const sections = document.querySelectorAll(".view-section");
+  console.log("✅ app.js cargado correctamente");
 
-  // Si no hay usuario logeado, regresa al login
+  // Recuperar usuario actual
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  console.log("Usuario actual:", currentUser);
+
   if (!currentUser) {
+    console.warn("⚠️ No hay usuario activo. Redirigiendo al login...");
     window.location.href = "index.html";
     return;
   }
 
-  console.log("Usuario actual:", currentUser);
+  // Referencias a elementos
+  const logoutBtn = document.getElementById("logoutBtn");
+  const navBtns = document.querySelectorAll(".nav-btn");
+  const sections = document.querySelectorAll(".view-section");
 
-  // Mostrar/ocultar opciones según rol
+  // Ocultar secciones excepto panel
+  sections.forEach(sec => sec.classList.add("hidden"));
+  document.getElementById("view-panel").classList.remove("hidden");
+
+  // Mostrar/ocultar botones según rol
   if (currentUser.rol !== "admin") {
-    document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
+    document.querySelectorAll(".admin-only").forEach(el => {
+      el.classList.add("hidden");
+    });
   }
 
-  // Botón cerrar sesión
+  // Cerrar sesión
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
+      console.log("🚪 Cerrando sesión...");
       localStorage.removeItem("currentUser");
       window.location.href = "index.html";
     });
@@ -32,23 +40,20 @@ document.addEventListener("DOMContentLoaded", () => {
   navBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const view = btn.dataset.view;
+      console.log("🧭 Cambiando a vista:", view);
 
-      // Oculta todas las secciones
       sections.forEach(sec => sec.classList.add("hidden"));
-      // Muestra la seleccionada
-      document.getElementById(`view-${view}`).classList.remove("hidden");
+      const target = document.getElementById(`view-${view}`);
+      if (target) target.classList.remove("hidden");
 
-      // Carga dinámica según vista
       if (view === "tiempo") renderControlTiempo();
       if (view === "usuarios") renderUsuarios();
     });
   });
 
-  // Mostrar vista inicial
-  document.getElementById("view-panel").classList.remove("hidden");
-
   // === Módulo Control de Tiempo ===
   function renderControlTiempo() {
+    console.log("⏱ Cargando módulo de tiempo...");
     const container = document.getElementById("tiempo-content");
     container.innerHTML = "";
 
@@ -137,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Módulo Usuarios (solo admin) ===
   function renderUsuarios() {
+    console.log("👥 Cargando módulo de usuarios...");
     const container = document.getElementById("usuarios-content");
     container.innerHTML = "";
 
@@ -213,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
     }
+
     actualizarUsuarios();
 
     document.getElementById("agregarUsuario").addEventListener("click", () => {
