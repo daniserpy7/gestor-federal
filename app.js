@@ -249,3 +249,163 @@ document.addEventListener("DOMContentLoaded", () => {
         <input id="comunicadoTitulo" type="text" placeholder="Título" class="border p-2 rounded w-full mb-2">
         <textarea id="comunicadoTexto" placeholder="Mensaje" class="border p-2 rounded w-full mb-3"></textarea>
         <button id="agregarComunicado" class="bg-blue-600
+ // === Módulo ACTAS ===
+  function renderActas() {
+    const container = document.getElementById("actas-content");
+    container.innerHTML = "";
+
+    const actas = JSON.parse(localStorage.getItem("actas")) || [];
+
+    // Solo admin y alto pueden agregar
+    if (["admin", "alto"].includes(currentUser.rol)) {
+      const form = document.createElement("div");
+      form.className = "bg-gray-50 p-4 rounded-lg mb-6";
+      form.innerHTML = `
+        <h3 class="font-semibold mb-2">Subir nueva acta</h3>
+        <input id="actaTitulo" type="text" placeholder="Título del acta" class="border p-2 rounded w-full mb-2">
+        <textarea id="actaContenido" placeholder="Contenido del acta" class="border p-2 rounded w-full mb-3"></textarea>
+        <button id="agregarActa" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Guardar</button>
+      `;
+      container.appendChild(form);
+
+      document.getElementById("agregarActa").addEventListener("click", () => {
+        const titulo = document.getElementById("actaTitulo").value.trim();
+        const contenido = document.getElementById("actaContenido").value.trim();
+        if (!titulo || !contenido) return alert("Completa todos los campos.");
+
+        actas.push({
+          id: Date.now(),
+          titulo,
+          contenido,
+          fecha: new Date().toLocaleString(),
+          autor: currentUser.usuario
+        });
+
+        localStorage.setItem("actas", JSON.stringify(actas));
+        renderActas();
+      });
+    }
+
+    // Mostrar actas
+    if (actas.length === 0) {
+      container.innerHTML += `<p class="text-gray-500 text-sm">No hay actas registradas.</p>`;
+      return;
+    }
+
+    actas.slice().reverse().forEach(a => {
+      const card = document.createElement("div");
+      card.className = "border rounded-lg p-4 mb-3 shadow-sm bg-white";
+      card.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <h4 class="font-semibold text-lg text-blue-800">${a.titulo}</h4>
+          <span class="text-xs text-gray-500">${a.fecha}</span>
+        </div>
+        <p class="text-gray-700 mb-3">${a.contenido}</p>
+        <div class="flex justify-between items-center text-sm text-gray-500">
+          <span>Autor: ${a.autor}</span>
+          ${["admin", "alto"].includes(currentUser.rol)
+            ? `<button data-id="${a.id}" class="borrar-acta text-red-600 hover:text-red-800">Eliminar</button>`
+            : ""}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    // Eliminar
+    document.querySelectorAll(".borrar-acta").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const id = e.target.dataset.id;
+        const nuevas = actas.filter(a => a.id != id);
+        localStorage.setItem("actas", JSON.stringify(nuevas));
+        renderActas();
+      });
+    });
+  }
+
+  // === Módulo COMUNICADOS ===
+  function renderComunicados() {
+    const container = document.getElementById("comunicados-content");
+    container.innerHTML = "";
+
+    const comunicados = JSON.parse(localStorage.getItem("comunicados")) || [];
+
+    // Solo admin y alto pueden agregar
+    if (["admin", "alto"].includes(currentUser.rol)) {
+      const form = document.createElement("div");
+      form.className = "bg-gray-50 p-4 rounded-lg mb-6";
+      form.innerHTML = `
+        <h3 class="font-semibold mb-2">Nuevo comunicado</h3>
+        <input id="comunicadoTitulo" type="text" placeholder="Título del comunicado" class="border p-2 rounded w-full mb-2">
+        <textarea id="comunicadoTexto" placeholder="Mensaje" class="border p-2 rounded w-full mb-3"></textarea>
+        <button id="agregarComunicado" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Publicar</button>
+      `;
+      container.appendChild(form);
+
+      document.getElementById("agregarComunicado").addEventListener("click", () => {
+        const titulo = document.getElementById("comunicadoTitulo").value.trim();
+        const texto = document.getElementById("comunicadoTexto").value.trim();
+        if (!titulo || !texto) return alert("Completa todos los campos.");
+
+        comunicados.push({
+          id: Date.now(),
+          titulo,
+          texto,
+          fecha: new Date().toLocaleString(),
+          autor: currentUser.usuario
+        });
+
+        localStorage.setItem("comunicados", JSON.stringify(comunicados));
+        renderComunicados();
+      });
+    }
+
+    // Mostrar comunicados
+    if (comunicados.length === 0) {
+      container.innerHTML += `<p class="text-gray-500 text-sm">No hay comunicados publicados.</p>`;
+      return;
+    }
+
+    comunicados.slice().reverse().forEach(c => {
+      const card = document.createElement("div");
+      card.className = "border rounded-lg p-4 mb-3 shadow-sm bg-white";
+      card.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <h4 class="font-semibold text-lg text-blue-800">${c.titulo}</h4>
+          <span class="text-xs text-gray-500">${c.fecha}</span>
+        </div>
+        <p class="text-gray-700 mb-3">${c.texto}</p>
+        <div class="flex justify-between items-center text-sm text-gray-500">
+          <span>Autor: ${c.autor}</span>
+          ${["admin", "alto"].includes(currentUser.rol)
+            ? `<button data-id="${c.id}" class="borrar-comunicado text-red-600 hover:text-red-800">Eliminar</button>`
+            : ""}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    // Eliminar
+    document.querySelectorAll(".borrar-comunicado").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const id = e.target.dataset.id;
+        const nuevos = comunicados.filter(c => c.id != id);
+        localStorage.setItem("comunicados", JSON.stringify(nuevos));
+        renderComunicados();
+      });
+    });
+  }
+
+  // === Agregar los nuevos módulos al sistema de navegación ===
+  navBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.view;
+      sections.forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(`view-${view}`).classList.remove("hidden");
+
+      if (view === "tiempo") renderControlTiempo();
+      if (view === "usuarios") renderUsuarios();
+      if (view === "actas") renderActas();
+      if (view === "comunicados") renderComunicados();
+    });
+  });
+});
