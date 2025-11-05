@@ -3,18 +3,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
   const navBtns = document.querySelectorAll(".nav-btn");
   const sections = document.querySelectorAll(".view-section");
+  const body = document.body;
 
+  // Si no hay usuario logueado
   if (!currentUser) {
     window.location.href = "index.html";
     return;
   }
 
-  // Roles visibles
+  console.log("Usuario actual:", currentUser);
+
+  // Tema por rol
+  if (["admin", "alto"].includes(currentUser.rol)) {
+    body.classList.add("theme-admin");
+  } else {
+    body.classList.add("theme-basic");
+  }
+
+  // Mostrar info usuario
+  document.getElementById("user-name").textContent = currentUser.usuario;
+  document.getElementById("user-role").textContent = currentUser.rol;
+  document.getElementById("user-avatar").textContent = currentUser.usuario.charAt(0).toUpperCase();
+
+  // Mostrar/ocultar admin
   if (currentUser.rol !== "admin") {
     document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
   }
 
-  // Cerrar sesión
+  // Logout
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("currentUser");
     window.location.href = "index.html";
@@ -26,30 +42,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const view = btn.dataset.view;
       sections.forEach(sec => sec.classList.add("hidden"));
       document.getElementById(`view-${view}`).classList.remove("hidden");
-      document.getElementById("view-title").textContent = btn.textContent.trim();
+      document.getElementById("view-title").textContent = btn.textContent;
+      lucide.createIcons();
 
       if (view === "tiempo") renderControlTiempo();
       if (view === "usuarios") renderUsuarios();
+      if (view === "actas") renderActas();
+      if (view === "comunicados") renderComunicados();
     });
   });
 
-  // Mostrar info usuario en header
-  const userNameEl = document.getElementById("user-name");
-  const userRoleEl = document.getElementById("user-role");
-  const userAvatarEl = document.getElementById("user-avatar");
-  userNameEl.textContent = currentUser.usuario;
-  userRoleEl.textContent = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
-  userAvatarEl.textContent = currentUser.usuario.charAt(0).toUpperCase();
-
-  // === Aplicar tema según rol ===
-  const body = document.body;
-  if (["admin", "alto"].includes(currentUser.rol)) {
-    body.classList.add("theme-admin");
-  } else {
-    body.classList.add("theme-basic");
-  }
-
-  // === Control de Tiempo ===
+  // === CONTROL DE TIEMPO ===
   function renderControlTiempo() {
     const container = document.getElementById("tiempo-content");
     container.innerHTML = "";
@@ -75,12 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <h3 class="text-lg font-semibold mb-3">Historial</h3>
       <table class="w-full text-sm text-left">
         <thead>
-          <tr class="border-b">
-            <th class="py-2">Fecha</th>
-            <th>Hora</th>
-            <th>Actividad</th>
-            <th>Tipo</th>
-          </tr>
+          <tr class="border-b"><th>Fecha</th><th>Hora</th><th>Actividad</th><th>Tipo</th></tr>
         </thead>
         <tbody id="historial-tiempo"></tbody>
       </table>
@@ -88,19 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
     container.appendChild(tabla);
 
     const tbody = document.getElementById("historial-tiempo");
-
     function actualizarTabla() {
       tbody.innerHTML = "";
       const registrosActuales = (currentUser.rol === "admin" || currentUser.rol === "alto") ? registros : misRegistros;
       registrosActuales.slice().reverse().forEach(r => {
         const tr = document.createElement("tr");
         tr.className = "border-b";
-        tr.innerHTML = `
-          <td class="py-1">${r.fecha}</td>
-          <td>${r.hora}</td>
-          <td>${r.actividad}</td>
-          <td>${r.tipo}</td>
-        `;
+        tr.innerHTML = `<td>${r.fecha}</td><td>${r.hora}</td><td>${r.actividad}</td><td>${r.tipo}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -111,30 +103,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function registrarTiempo(tipo) {
       const actividad = document.getElementById("actividad").value.trim();
-      if (actividad === "") {
-        alert("Por favor ingresa una actividad.");
-        return;
-      }
+      if (!actividad) return alert("Por favor ingresa una actividad.");
       const ahora = new Date();
-      const nuevoRegistro = {
-        usuario: currentUser.usuario,
-        fecha: ahora.toLocaleDateString(),
-        hora: ahora.toLocaleTimeString(),
-        actividad,
-        tipo
-      };
-      registros.push(nuevoRegistro);
+      registros.push({ usuario: currentUser.usuario, fecha: ahora.toLocaleDateString(), hora: ahora.toLocaleTimeString(), actividad, tipo });
       localStorage.setItem("tiempos", JSON.stringify(registros));
       actualizarTabla();
       document.getElementById("actividad").value = "";
     }
   }
 
-  // === Gestión de Usuarios ===
+  // === USUARIOS ===
   function renderUsuarios() {
     const container = document.getElementById("usuarios-content");
     container.innerHTML = "";
-
     if (currentUser.rol !== "admin") {
       container.innerHTML = "<p class='text-gray-600'>No tienes permisos para ver esta sección.</p>";
       return;
@@ -144,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
       { usuario: "admin", contraseña: "1234", rol: "admin" },
       { usuario: "alto1", contraseña: "1234", rol: "alto" },
       { usuario: "medio1", contraseña: "1234", rol: "medio" },
-      { usuario: "basico1", contraseña: "1234", rol: "básico" },
+      { usuario: "basico1", contraseña: "1234", rol: "básico" }
     ];
 
     const form = document.createElement("div");
@@ -170,45 +151,27 @@ document.addEventListener("DOMContentLoaded", () => {
     tabla.innerHTML = `
       <h3 class="text-lg font-semibold mb-3">Usuarios registrados</h3>
       <table class="w-full text-sm text-left">
-        <thead>
-          <tr class="border-b">
-            <th class="py-2">Usuario</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
+        <thead><tr class="border-b"><th>Usuario</th><th>Rol</th><th>Acciones</th></tr></thead>
         <tbody id="tablaUsuarios"></tbody>
       </table>
     `;
     container.appendChild(tabla);
 
     const tbody = document.getElementById("tablaUsuarios");
-
     function actualizarUsuarios() {
       tbody.innerHTML = "";
       usuarios.forEach((u, i) => {
         const tr = document.createElement("tr");
         tr.className = "border-b";
-        tr.innerHTML = `
-          <td class="py-1">${u.usuario}</td>
-          <td>${u.rol}</td>
-          <td>
-            ${u.usuario !== "admin"
-              ? `<button data-index="${i}" class="borrar bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Eliminar</button>`
-              : ""}
-          </td>
-        `;
+        tr.innerHTML = `<td>${u.usuario}</td><td>${u.rol}</td>
+        <td>${u.usuario !== "admin" ? `<button data-index="${i}" class="borrar bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Eliminar</button>` : ""}</td>`;
         tbody.appendChild(tr);
       });
-
-      document.querySelectorAll(".borrar").forEach(btn => {
-        btn.addEventListener("click", e => {
-          const i = e.target.dataset.index;
-          usuarios.splice(i, 1);
-          localStorage.setItem("usuarios", JSON.stringify(usuarios));
-          actualizarUsuarios();
-        });
-      });
+      document.querySelectorAll(".borrar").forEach(btn => btn.addEventListener("click", e => {
+        usuarios.splice(e.target.dataset.index, 1);
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+        actualizarUsuarios();
+      }));
     }
     actualizarUsuarios();
 
@@ -216,17 +179,73 @@ document.addEventListener("DOMContentLoaded", () => {
       const nuevoUsuario = document.getElementById("nuevoUsuario").value.trim();
       const nuevoPass = document.getElementById("nuevoPass").value.trim();
       const nuevoRol = document.getElementById("nuevoRol").value;
-      if (nuevoUsuario === "" || nuevoPass === "") {
-        alert("Completa todos los campos.");
-        return;
-      }
-      if (usuarios.some(u => u.usuario === nuevoUsuario)) {
-        alert("Ese usuario ya existe.");
-        return;
-      }
+      if (!nuevoUsuario || !nuevoPass) return alert("Completa todos los campos.");
+      if (usuarios.some(u => u.usuario === nuevoUsuario)) return alert("Ese usuario ya existe.");
       usuarios.push({ usuario: nuevoUsuario, contraseña: nuevoPass, rol: nuevoRol });
       localStorage.setItem("usuarios", JSON.stringify(usuarios));
       actualizarUsuarios();
+      document.getElementById("nuevoUsuario").value = "";
+      document.getElementById("nuevoPass").value = "";
     });
   }
-});
+
+  // === ACTAS ===
+  function renderActas() {
+    const c = document.getElementById("actas-content");
+    c.innerHTML = "";
+    const actas = JSON.parse(localStorage.getItem("actas")) || [];
+
+    if (["admin", "alto"].includes(currentUser.rol)) {
+      c.innerHTML += `
+      <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <h3 class="font-semibold mb-2">Subir nueva acta</h3>
+        <input id="actaTitulo" type="text" placeholder="Título" class="border p-2 rounded w-full mb-2">
+        <textarea id="actaContenido" placeholder="Contenido" class="border p-2 rounded w-full mb-3"></textarea>
+        <button id="agregarActa" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Guardar</button>
+      </div>`;
+      document.getElementById("agregarActa").addEventListener("click", () => {
+        const titulo = document.getElementById("actaTitulo").value.trim();
+        const contenido = document.getElementById("actaContenido").value.trim();
+        if (!titulo || !contenido) return alert("Completa todos los campos.");
+        actas.push({ id: Date.now(), titulo, contenido, fecha: new Date().toLocaleString(), autor: currentUser.usuario });
+        localStorage.setItem("actas", JSON.stringify(actas));
+        renderActas();
+      });
+    }
+
+    if (actas.length === 0) {
+      c.innerHTML += `<p class="text-gray-500 text-sm">No hay actas registradas.</p>`;
+      return;
+    }
+
+    actas.slice().reverse().forEach(a => {
+      const card = document.createElement("div");
+      card.className = "border rounded-lg p-4 mb-3 shadow-sm bg-white";
+      card.innerHTML = `<div class="flex justify-between mb-2">
+      <h4 class="font-semibold text-blue-800">${a.titulo}</h4><span class="text-xs text-gray-500">${a.fecha}</span></div>
+      <p class="text-gray-700 mb-3">${a.contenido}</p>
+      <div class="flex justify-between text-sm text-gray-500"><span>Autor: ${a.autor}</span>
+      ${["admin", "alto"].includes(currentUser.rol) ? `<button data-id="${a.id}" class="borrar-acta text-red-600 hover:text-red-800">Eliminar</button>` : ""}</div>`;
+      c.appendChild(card);
+    });
+
+    document.querySelectorAll(".borrar-acta").forEach(btn => btn.addEventListener("click", e => {
+      const nuevas = actas.filter(a => a.id != e.target.dataset.id);
+      localStorage.setItem("actas", JSON.stringify(nuevas));
+      renderActas();
+    }));
+  }
+
+  // === COMUNICADOS ===
+  function renderComunicados() {
+    const c = document.getElementById("comunicados-content");
+    c.innerHTML = "";
+    const comunicados = JSON.parse(localStorage.getItem("comunicados")) || [];
+
+    if (["admin", "alto"].includes(currentUser.rol)) {
+      c.innerHTML += `
+      <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <h3 class="font-semibold mb-2">Nuevo comunicado</h3>
+        <input id="comunicadoTitulo" type="text" placeholder="Título" class="border p-2 rounded w-full mb-2">
+        <textarea id="comunicadoTexto" placeholder="Mensaje" class="border p-2 rounded w-full mb-3"></textarea>
+        <button id="agregarComunicado" class="bg-blue-600
