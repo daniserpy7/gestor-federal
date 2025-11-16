@@ -1,87 +1,79 @@
-/* Estilos generales */
+/* ======== ESTILOS GENERALES ======== */
 body {
-    background: #f3f4f6;
     margin: 0;
-    font-family: system-ui, sans-serif;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
 }
 
-/* Contenedores */
-.container {
-    padding: 20px;
-}
-
-/* Títulos */
-.section-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-/* Tarjetas */
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-/* ------- ROLES -------- */
-
-/* ADMIN - Negro elegante */
-.role-admin {
-    background: linear-gradient(135deg, #000, #333);
-    color: white !important;
-}
-.role-admin a {
-    color: white;
-}
-
-/* ALTO - Azul oscuro corporativo */
-.role-alto {
-    background: linear-gradient(135deg, #003366, #004080);
-    color: white !important;
-}
-.role-alto a {
-    color: white;
-}
-
-/* MEDIO - Gris profesional */
-.role-medio {
-    background: linear-gradient(135deg, #4b5563, #6b7280);
-    color: white !important;
-}
-.role-medio a {
-    color: white;
-}
-
-/* BÁSICO - Gris claro */
-.role-basico {
-    background: linear-gradient(135deg, #d1d5db, #e5e7eb);
-    color: #111 !important;
-}
-.role-basico a {
-    color: #111;
-}
-
-/* Navbar */
+/* ======== NAVBAR SUPERIOR ======== */
 .navbar {
     display: flex;
     gap: 10px;
-    padding: 12px;
+    padding: 15px;
+    background: #1e3a8a;
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.navbar button {
-    padding: 8px 14px;
-    border-radius: 10px;
-    border: none;
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 6px;
     background: rgba(255,255,255,0.15);
-    color: inherit;
-    cursor: pointer;
     transition: 0.2s;
 }
 
-.navbar button:hover {
+.navbar a:hover {
     background: rgba(255,255,255,0.3);
+}
+
+/* ======== CONTENEDORES ======== */
+.container {
+    margin: 30px auto;
+    width: 90%;
+    max-width: 900px;
+}
+
+/* ======== TÍTULOS ======== */
+.section-title {
+    font-size: 26px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* ======== TARJETAS ======== */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+/* ======== BOTONES ======== */
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+/* ======== LISTAS ======== */
+.list-item {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #2563eb;
 }
