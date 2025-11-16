@@ -1,79 +1,15 @@
-/* ======== ESTILOS GENERALES ======== */
+/* Estilos generales */
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
+  font-family: Arial, sans-serif;
 }
 
-/* ======== NAVBAR SUPERIOR ======== */
-.navbar {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-    background: #1e3a8a;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.navbar a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.15);
-    transition: 0.2s;
-}
-
-.navbar a:hover {
-    background: rgba(255,255,255,0.3);
-}
-
-/* ======== CONTENEDORES ======== */
+/* Para asegurar que las tarjetas y contenedores no se estiren raro */
 .container {
-    margin: 30px auto;
-    width: 90%;
-    max-width: 900px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* ======== TÍTULOS ======== */
-.section-title {
-    font-size: 26px;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-/* ======== TARJETAS ======== */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-
-/* ======== BOTONES ======== */
-.btn-primary {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    transition: 0.2s;
-}
-
-.btn-primary:hover {
-    background: #1d4ed8;
-}
-
-/* ======== LISTAS ======== */
-.list-item {
-    background: #f9f9f9;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border-left: 4px solid #2563eb;
+/* Oculta elementos con la clase .hidden (por si algún JS la usa) */
+.hidden {
+  display: none;
 }
