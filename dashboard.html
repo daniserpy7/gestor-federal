@@ -1,84 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestor Federal - Panel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestor Federal - Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="styles.css">
 </head>
-<body class="min-h-screen flex theme-basic">
-
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="w-64 min-h-screen p-5 flex flex-col justify-between shadow-lg">
-    <div>
-      <h2 class="text-2xl font-bold text-center mb-8">Gestor Federal</h2>
-      <nav class="space-y-2">
-        <button data-view="panel" class="nav-btn w-full text-left px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition">Panel principal</button>
-        <button data-view="actas" class="nav-btn w-full text-left px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition">Actas</button>
-        <button data-view="comunicados" class="nav-btn w-full text-left px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition">Comunicados</button>
-        <button data-view="tiempo" class="nav-btn w-full text-left px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition">Control de tiempo</button>
-        <button data-view="usuarios" class="nav-btn admin-only w-full text-left px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition">Usuarios</button>
-      </nav>
-    </div>
-    <button id="logoutBtn" class="mt-8 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded">Cerrar sesión</button>
-  </aside>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 p-6 bg-gray-100 overflow-y-auto">
-    <header class="flex items-center justify-between mb-6 bg-white shadow-sm rounded-lg px-6 py-3">
-      <div class="flex items-center space-x-2">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 text-blue-600"></i>
-        <h1 id="view-title" class="text-xl font-semibold text-gray-800">Panel principal</h1>
-      </div>
-      <div id="user-info" class="flex items-center space-x-3 text-gray-700 font-medium">
-        <div id="user-avatar" class="bg-gray-300 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"></div>
-        <div class="text-right leading-tight">
-          <p id="user-name" class="text-sm font-semibold"></p>
-          <p id="user-role" class="text-xs text-gray-500"></p>
-        </div>
-      </div>
-    </header>
-
-    <!-- === SECCIONES === -->
-    <section id="view-panel" class="view-section">
-      <div class="bg-white p-6 rounded-lg shadow text-gray-700">
-        <h2 class="text-2xl font-semibold mb-2">Bienvenido al Gestor Federal</h2>
-        <p class="text-gray-600">Selecciona una opción del menú lateral para comenzar.</p>
-      </div>
-    </section>
-
-    <section id="view-actas" class="view-section hidden">
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800 flex items-center space-x-2">
-          <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
-          <span>Actas</span>
-        </h2>
-        <div id="actas-content"></div>
-      </div>
-    </section>
-
-    <section id="view-comunicados" class="view-section hidden">
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800 flex items-center space-x-2">
-          <i data-lucide="megaphone" class="w-6 h-6 text-blue-600"></i>
-          <span>Comunicados</span>
-        </h2>
-        <div id="comunicados-content"></div>
-      </div>
-    </section>
-
-    <section id="view-tiempo" class="view-section hidden">
-      <div id="tiempo-content"></div>
-    </section>
-
-    <section id="view-usuarios" class="view-section hidden">
-      <div id="usuarios-content"></div>
-    </section>
-  </main>
-
- <script src="app-core.js"></script>
-  <script>lucide.createIcons();</script>
+<body class="bg-gray-50">
+<div id="layout" class="flex min-h-screen"></div>
+<script src="app-core.js"></script>
+<script src="app-roles.js"></script>
+<script src="app-modules.js"></script>
 </body>
 </html>
