@@ -10,50 +10,70 @@
 </head>
 <body>
 <div class="layout">
-<aside class="sidebar">
-<h2 class="logo">Panel</h2>
-<nav class="menu">
-<a href="dashboard.html">📊 Dashboard</a>
-<a href="usuarios.html">👤 Usuarios</a>
-<a href="actas.html">📄 Actas</a>
-<a href="comunicados.html">📢 Comunicados</a>
-<a href="tiempo.html">⏱️ Tiempo</a>
-</nav>
-</aside>
+  <aside class="sidebar">
+    <h2 class="logo">Panel</h2>
+    <nav class="menu">
+      <a href="dashboard.html">📊 Dashboard</a>
+      <a href="usuarios.html">👤 Usuarios</a>
+      <a href="actas.html">📄 Actas</a>
+      <a href="comunicados.html">📢 Comunicados</a>
+      <a href="tiempo.html">⏱️ Tiempo</a>
+    </nav>
+  </aside>
 
+  <main class="main">
+    <header class="topbar">
+      <h1>Bienvenido</h1>
+      <button id="logoutBtn">Cerrar sesión</button>
+    </header>
 
-<main class="main">
-<header class="topbar">
-<h1>Bienvenido</h1>
-<button id="logoutBtn">Cerrar sesión</button>
-</header>
+    <section class="cards">
+      <div class="card">
+        <h3>Total de Usuarios</h3>
+        <p id="countUsuarios">0</p>
+      </div>
+      <div class="card">
+        <h3>Actas Registradas</h3>
+        <p id="countActas">0</p>
+      </div>
+      <div class="card">
+        <h3>Comunicados</h3>
+        <p id="countComunicados">0</p>
+      </div>
+      <div class="card">
+        <h3>Tiempo Activo</h3>
+        <p id="countTiempo">0</p>
+      </div>
+    </section>
 
-
-<section class="cards">
-<div class="card">
-<h3>Total de Usuarios</h3>
-<p id="countUsuarios">0</p>
+    <section class="recent">
+      <h2>Actividad Reciente</h2>
+      <ul id="actividadLista"></ul>
+    </section>
+  </main>
 </div>
-<div class="card">
-<h3>Actas Registradas</h3>
-<p id="countActas">0</p>
-</div>
-<div class="card">
-<h3>Comunicados</h3>
-<p id="countComunicados">0</p>
-</div>
-<div class="card">
-<h3>Tiempo Activo</h3>
-<p id="countTiempo">0</p>
-</div>
-</section>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Leer registros de tiempo desde localStorage
+  const registros = JSON.parse(localStorage.getItem("tiempos")) || [];
 
-<section class="recent">
-<h2>Actividad Reciente</h2>
-<ul id="actividadLista"></ul>
-</section>
-</main>
-</div>
+  // Actualizar total de registros
+  const countTiempo = document.getElementById("countTiempo");
+  if(countTiempo) countTiempo.textContent = registros.length;
+
+  // Mostrar últimas 5 actividades
+  const lista = document.getElementById("actividadLista");
+  if(lista) {
+    lista.innerHTML = "";
+    registros.slice(-5).reverse().forEach(r => {
+      const li = document.createElement("li");
+      li.textContent = `${r.fecha} ${r.hora} - ${r.usuario}: ${r.actividad} (${r.tipo})`;
+      lista.appendChild(li);
+    });
+  }
+});
+</script>
+
 </body>
 </html>
