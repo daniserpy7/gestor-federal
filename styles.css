@@ -1,34 +1,5 @@
-/* ===== Temas visuales por rol ===== */
-
-/* Azul oscuro - Admin / Alto */
-.theme-admin {
-  background-color: #f8fafc;
-}
-.theme-admin #sidebar {
-  background-color: #1e3a8a;
-  color: #fff;
-}
-.theme-admin #sidebar button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-.theme-admin #sidebar h2 {
-  color: #ffffff;
-}
-.theme-admin #user-avatar {
-  background-color: #1e3a8a;
-}
-
-/* Gris claro - Medio / Básico */
-.theme-basic {
-  background-color: #f3f4f6;
-}
-.theme-basic #sidebar {
-  background-color: #e5e7eb;
-  color: #111827;
-}
-.theme-basic #sidebar button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-.theme-basic #user-avatar {
-  background-color: #4b5563;
-}
+/* Archivo: styles.css */
+.input { @apply w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500; }
+.btn-primary { @apply bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition; }
+.sidebar-link { @apply block py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-100; }
+.active-link { @apply bg-blue-200 font-bold; }
