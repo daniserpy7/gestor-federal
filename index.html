@@ -4,48 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestor Federal - Iniciar sesión</title>
-
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Styles globales -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
   <!-- Contenedor principal -->
   <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center text-gray-700 mb-6">
-      Gestor Federal
-    </h1>
+    <h1 class="text-2xl font-bold text-center text-gray-700 mb-6">Gestor Federal</h1>
 
     <!-- Formulario de login -->
     <form id="loginForm" class="space-y-4">
       <div>
         <label class="block text-gray-600 mb-1">Usuario</label>
-        <input
-          id="username"
-          type="text"
+        <input id="username" type="text"
           class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Ej. admin"
-        >
+          placeholder="Ej. admin">
       </div>
 
       <div>
         <label class="block text-gray-600 mb-1">Contraseña</label>
-        <input
-          id="password"
-          type="password"
+        <input id="password" type="password"
           class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="********"
-        >
+          placeholder="********">
       </div>
 
-      <button
-        type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-      >
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
         Entrar
       </button>
     </form>
@@ -55,7 +41,9 @@
     </p>
   </div>
 
-  <!-- Script de login -->
+  <!-- SCRIPTS -->
   <script src="app-core.js"></script>
+  <script src="app-modules.js"></script>
+
 </body>
 </html>
