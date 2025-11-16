@@ -1,38 +1,46 @@
-// Archivo: app-core.js
-console.log("CORE JS CARGADO");
+document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("loginForm");
+    const appSection = document.getElementById("appSection");
+    const logoutBtn = document.getElementById("logoutBtn");
 
+    const USERS = [
+        { user: "admin", pass: "admin123", role: "Administrador" },
+        { user: "alto", pass: "alto123", role: "Alto Mando" },
+        { user: "medio", pass: "medio123", role: "Mando Medio" }
+    ];
 
-const USERS = [
-{ user: "admin", pass: "1234", role: "admin" },
-{ user: "alto1", pass: "1234", role: "alto" },
-{ user: "medio1", pass: "1234", role: "medio" },
-{ user: "basico1", pass: "1234", role: "basico" }
-];
+    loginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
 
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-function saveUserSession(user){ localStorage.setItem("currentUser", JSON.stringify(user)); }
-function getUserSession(){ return JSON.parse(localStorage.getItem("currentUser")); }
-function logout(){ localStorage.removeItem("currentUser"); window.location.href = "index.html"; }
+        const found = USERS.find(u => u.user === username && u.pass === password);
 
+        if (!found) {
+            alert("Usuario o contraseña incorrectos");
+            return;
+        }
 
-if (window.location.pathname.includes("dashboard")){
-const user = getUserSession();
-if(!user) window.location.href = "index.html";
-}
+        localStorage.setItem("loggedUser", JSON.stringify(found));
 
+        mostrarApp(found);
+    });
 
-const loginForm = document.getElementById("loginForm");
-if (loginForm){
-loginForm.addEventListener("submit", e => {
-e.preventDefault();
-const u = document.getElementById("username").value;
-const p = document.getElementById("password").value;
+    function mostrarApp(user) {
+        document.getElementById("loginSection").style.display = "none";
+        appSection.style.display = "block";
 
+        document.getElementById("userRole").textContent = user.role;
+    }
 
-const found = USERS.find(x => x.user === u && x.pass === p);
+    const saved = localStorage.getItem("loggedUser");
+    if (saved) {
+        mostrarApp(JSON.parse(saved));
+    }
 
-
-if(found){ saveUserSession(found); window.location.href = "dashboard.html"; }
-else document.getElementById("loginError").classList.remove("hidden");
+    logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("loggedUser");
+        location.reload();
+    });
 });
-}
