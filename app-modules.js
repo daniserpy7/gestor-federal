@@ -1,26 +1,33 @@
-document.addEventListener("DOMContentLoaded", () => {
+// ==============================
+// MÓDULOS DEL SISTEMA
+// ==============================
 
-    const btnDashboard = document.getElementById("btnDashboard");
-    const btnActas = document.getElementById("btnActas");
-    const btnComunicados = document.getElementById("btnComunicados");
-    const btnAjustes = document.getElementById("btnAjustes");
+// Cargar datos del usuario en el dashboard
+function cargarDashboard() {
+    const usuarioActivo = localStorage.getItem("usuarioActivo");
 
-    const pageDashboard = document.getElementById("pageDashboard");
-    const pageActas = document.getElementById("pageActas");
-    const pageComunicados = document.getElementById("pageComunicados");
-    const pageAjustes = document.getElementById("pageAjustes");
-
-    const pages = [pageDashboard, pageActas, pageComunicados, pageAjustes];
-
-    function mostrarPagina(pagina) {
-        pages.forEach(p => p.style.display = "none");
-        pagina.style.display = "block";
+    if (!usuarioActivo) {
+        window.location.href = "index.html";
+        return;
     }
 
-    btnDashboard.addEventListener("click", () => mostrarPagina(pageDashboard));
-    btnActas.addEventListener("click", () => mostrarPagina(pageActas));
-    btnComunicados.addEventListener("click", () => mostrarPagina(pageComunicados));
-    btnAjustes.addEventListener("click", () => mostrarPagina(pageAjustes));
+    const datos = JSON.parse(usuarioActivo);
 
-    mostrarPagina(pageDashboard);
-});
+    const info = document.getElementById("infoUsuario");
+
+    info.innerHTML = `
+        <div class="card p-3 shadow-sm">
+            <h4>Usuario: ${datos.usuario}</h4>
+            <p><strong>Rol:</strong> ${datos.rol}</p>
+        </div>
+    `;
+}
+
+// Cerrar sesión
+const cerrarSesionBtn = document.getElementById("cerrarSesionBtn");
+if (cerrarSesionBtn) {
+    cerrarSesionBtn.addEventListener("click", () => {
+        localStorage.removeItem("usuarioActivo");
+        window.location.href = "index.html";
+    });
+}
