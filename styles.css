@@ -1,15 +1,77 @@
-/* Estilos generales */
+/* ================================
+   ESTILOS GENERALES DEL SISTEMA
+   ================================ */
+
 body {
-  font-family: Arial, sans-serif;
+  background-color: #f3f4f6;
+  font-family: system-ui, sans-serif;
 }
 
-/* Para asegurar que las tarjetas y contenedores no se estiren raro */
+/* Contenedores principales */
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
+  padding: 20px;
 }
 
-/* Oculta elementos con la clase .hidden (por si algún JS la usa) */
-.hidden {
-  display: none;
+/* Tarjetas */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+}
+
+/* Colores por rol */
+.role-admin {
+  border-left: 6px solid #1d4ed8; /* azul corporativo */
+}
+
+.role-alto {
+  border-left: 6px solid #3b82f6; /* azul más claro */
+}
+
+.role-medio {
+  border-left: 6px solid #6b7280; /* gris profesional */
+}
+
+.role-basico {
+  border-left: 6px solid #9ca3af; /* gris claro */
+}
+
+/* Navegación */
+.navbar {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 14px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+.navbar a {
+  margin-right: 20px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.navbar a:hover {
+  color: #1d4ed8;
+}
+
+/* Encabezados */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+/* Mensajes */
+.msg {
+  padding: 14px;
+  background: #e0f2fe;
+  border-left: 6px solid #0284c7;
+  border-radius: 10px;
+  margin-top: 20px;
 }
