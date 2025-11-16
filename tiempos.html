@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Tiempo</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor Federal - Control de Tiempo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="bg-gray-100">
 
-    <!-- NAVBAR -->
-    <nav id="navbar" class="navbar"></nav>
+  <!-- NAV -->
+  <div id="navbar"></div>
 
-    <div class="container">
-        <h1 class="section-title">Control de Tiempo</h1>
+  <!-- CONTENIDO -->
+  <div class="container">
+    <h1 class="title">Control de Tiempo</h1>
 
-        <button id="btnNuevoRegistro" class="btn-primary">Nuevo Registro</button>
+    <div class="card role-medio role-alto role-admin">
+      <h2 class="font-semibold text-lg mb-2">Registro de horas</h2>
+      <p class="text-gray-600 mb-4">Aquí podrás registrar y visualizar el control de tiempo.</p>
 
-        <div id="listaTiempos" class="card">
-            <!-- Registros de tiempo aparecen aquí -->
-        </div>
+      <div class="space-y-2">
+        <button class="btn-primary w-full">Registrar entrada</button>
+        <button class="btn-secondary w-full">Registrar salida</button>
+      </div>
     </div>
 
-    <script src="app-core.js"></script>
-    <script src="app-modules.js"></script>
+    <div id="tiempoContent" class="card">
+      <p class="text-gray-600">Cargando registros...</p>
+    </div>
+  </div>
+
+  <script src="app-core.js"></script>
+  <script src="app-modules.js"></script>
 </body>
 </html>
