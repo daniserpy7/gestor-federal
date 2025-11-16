@@ -13,25 +13,46 @@
   <div id="navbar"></div>
 
   <!-- CONTENIDO -->
-  <div class="container">
-    <h1 class="title">Control de Tiempo</h1>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Control de Tiempo</h1>
 
-    <div class="card role-medio role-alto role-admin">
+    <!-- Registro de horas -->
+    <div class="card role-medio role-alto role-admin p-4 mb-6 bg-white rounded shadow">
       <h2 class="font-semibold text-lg mb-2">Registro de horas</h2>
       <p class="text-gray-600 mb-4">Aquí podrás registrar y visualizar el control de tiempo.</p>
 
+      <!-- Input de actividad -->
+      <input type="text" id="actividad" placeholder="Ingresa actividad" class="w-full p-2 border rounded mb-2" />
+
+      <!-- Botones de entrada/salida -->
       <div class="space-y-2">
-        <button class="btn-primary w-full">Registrar entrada</button>
-        <button class="btn-secondary w-full">Registrar salida</button>
+        <button id="entradaBtn" class="btn-primary w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700">Registrar entrada</button>
+        <button id="salidaBtn" class="btn-secondary w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700">Registrar salida</button>
       </div>
     </div>
 
-    <div id="tiempoContent" class="card">
-      <p class="text-gray-600">Cargando registros...</p>
+    <!-- Tabla de registros -->
+    <div id="tiempoContent" class="card p-4 bg-white rounded shadow">
+      <table id="historialTiempo" class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border p-2 text-left">Fecha</th>
+            <th class="border p-2 text-left">Hora</th>
+            <th class="border p-2 text-left">Actividad</th>
+            <th class="border p-2 text-left">Tipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4" class="text-center text-gray-500 p-2">Cargando registros...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <script src="app-core.js"></script>
   <script src="app-modules.js"></script>
+  <script src="tiempo.js"></script>
 </body>
 </html>
