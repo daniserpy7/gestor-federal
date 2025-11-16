@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actas</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor Federal - Actas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="bg-gray-100">
 
-    <!-- NAVBAR -->
-    <nav id="navbar" class="navbar"></nav>
+  <!-- NAV -->
+  <div id="navbar"></div>
 
-    <div class="container">
-        <h1 class="section-title">Actas</h1>
+  <!-- CONTENIDO -->
+  <div class="container">
+    <h1 class="title">Actas</h1>
 
-        <button id="btnNuevaActa" class="btn-primary">Nueva Acta</button>
-
-        <div id="listaActas" class="card">
-            <!-- Las actas se mostrarán aquí -->
-        </div>
+    <div class="card role-admin">
+      <h2 class="font-semibold text-lg mb-2">Registro de Actas</h2>
+      <p class="text-gray-700">Aquí podrás visualizar o registrar nuevas actas según tu nivel de acceso.</p>
     </div>
 
-    <script src="app-core.js"></script>
-    <script src="app-modules.js"></script>
+    <div id="actasContent" class="card">
+      <p class="text-gray-600">Cargando información...</p>
+    </div>
+  </div>
+
+  <script src="app-core.js"></script>
+  <script src="app-modules.js"></script>
 </body>
 </html>
