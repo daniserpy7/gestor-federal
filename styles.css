@@ -1,5 +1,87 @@
-/* Archivo: styles.css */
-.input { @apply w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500; }
-.btn-primary { @apply bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition; }
-.sidebar-link { @apply block py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-100; }
-.active-link { @apply bg-blue-200 font-bold; }
+/* Estilos generales */
+body {
+    background: #f3f4f6;
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+
+/* Contenedores */
+.container {
+    padding: 20px;
+}
+
+/* Títulos */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Tarjetas */
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* ------- ROLES -------- */
+
+/* ADMIN - Negro elegante */
+.role-admin {
+    background: linear-gradient(135deg, #000, #333);
+    color: white !important;
+}
+.role-admin a {
+    color: white;
+}
+
+/* ALTO - Azul oscuro corporativo */
+.role-alto {
+    background: linear-gradient(135deg, #003366, #004080);
+    color: white !important;
+}
+.role-alto a {
+    color: white;
+}
+
+/* MEDIO - Gris profesional */
+.role-medio {
+    background: linear-gradient(135deg, #4b5563, #6b7280);
+    color: white !important;
+}
+.role-medio a {
+    color: white;
+}
+
+/* BÁSICO - Gris claro */
+.role-basico {
+    background: linear-gradient(135deg, #d1d5db, #e5e7eb);
+    color: #111 !important;
+}
+.role-basico a {
+    color: #111;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    color: white;
+}
+
+.navbar button {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: inherit;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.navbar button:hover {
+    background: rgba(255,255,255,0.3);
+}
