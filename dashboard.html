@@ -1,17 +1,28 @@
-<!-- Archivo: dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gestor Federal - Panel</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Principal</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-50">
-<div id="layout" class="flex min-h-screen"></div>
-<script src="app-core.js"></script>
-<script src="app-roles.js"></script>
-<script src="app-modules.js"></script>
+<body>
+
+    <!-- NAVBAR (se llena según el rol) -->
+    <nav id="navbar" class="navbar">
+        <!-- Aquí se insertan botones vía JS -->
+    </nav>
+
+    <div class="container">
+        <h1 class="section-title">Panel Principal</h1>
+
+        <div class="card">
+            <p>Bienvenido al Gestor Federal.</p>
+            <p id="roleDisplay"></p>
+        </div>
+    </div>
+
+    <script src="app-core.js"></script>
+    <script src="app-modules.js"></script>
 </body>
 </html>
