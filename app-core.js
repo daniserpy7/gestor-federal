@@ -1,46 +1,29 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("loginForm");
-    const appSection = document.getElementById("appSection");
-    const logoutBtn = document.getElementById("logoutBtn");
+/* ===========================
+   BASE DE USUARIOS INICIALES
+=========================== */
 
-    const USERS = [
-        { user: "admin", pass: "admin123", role: "Administrador" },
-        { user: "alto", pass: "alto123", role: "Alto Mando" },
-        { user: "medio", pass: "medio123", role: "Mando Medio" }
-    ];
+const BASE_USUARIOS = [
+    { usuario: "admin", contraseña: "1234", rol: "admin" },
+    { usuario: "alto1", contraseña: "1234", rol: "alto" },
+    { usuario: "medio1", contraseña: "1234", rol: "medio" },
+    { usuario: "basico1", contraseña: "1234", rol: "basico" }
+];
 
-    loginForm.addEventListener("submit", (e) => {
-        e.preventDefault();
+/* ===========================
+   INICIALIZAR USUARIOS
+=========================== */
 
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value.trim();
+if (!localStorage.getItem("usuarios")) {
+    localStorage.setItem("usuarios", JSON.stringify(BASE_USUARIOS));
+}
 
-        const found = USERS.find(u => u.user === username && u.pass === password);
+/* ===========================
+   FUNCIÓN DE LOGIN
+=========================== */
 
-        if (!found) {
-            alert("Usuario o contraseña incorrectos");
-            return;
-        }
-
-        localStorage.setItem("loggedUser", JSON.stringify(found));
-
-        mostrarApp(found);
-    });
-
-    function mostrarApp(user) {
-        document.getElementById("loginSection").style.display = "none";
-        appSection.style.display = "block";
-
-        document.getElementById("userRole").textContent = user.role;
-    }
-
-    const saved = localStorage.getItem("loggedUser");
-    if (saved) {
-        mostrarApp(JSON.parse(saved));
-    }
-
-    logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("loggedUser");
-        location.reload();
-    });
-});
+function login(usuario, contraseña) {
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    return usuarios.find(
+        u => u.usuario === usuario && u.contraseña === contraseña
+    );
+}
