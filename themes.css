@@ -1,14 +1,50 @@
-/* Temas según rango */
+/* ==========================
+   VARIABLES DE COLORES POR TEMA
+========================== */
 
-body.basic { --main-color: #1d5cff; }
-body.medium { --main-color: #17a500; }
-body.high { --main-color: #000000; }
-body.admin { --main-color: #111111; }
+:root {
+  --basic-color: #1e73ff;
+  --medium-color: #16a34a;
+  --high-color: #000000;
+  --admin-color: #7e22ce;
 
-.sidebar {
-  background: var(--main-color);
+  --text-light: #ffffff;
+  --text-dark: #111111;
 }
 
-.menu-btn {
-  background: #ffffff22;
+/* ==========================
+   THEMES APLICADOS AL BODY
+========================== */
+
+body.basic-theme {
+  --theme-main: var(--basic-color);
+  background: #f2f7ff;
+}
+
+body.medium-theme {
+  --theme-main: var(--medium-color);
+  background: #f2fff4;
+}
+
+body.high-theme {
+  --theme-main: var(--high-color);
+  background: #f7f7f7;
+}
+
+body.admin-theme {
+  --theme-main: var(--admin-color);
+  background: #faf5ff;
+}
+
+/* ==========================
+   BOTONES TEMÁTICOS
+========================== */
+
+button.theme {
+  background: var(--theme-main);
+  color: var(--text-light);
+}
+
+button.theme:hover {
+  opacity: .85;
 }
