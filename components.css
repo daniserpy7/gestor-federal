@@ -1,0 +1,12 @@
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #0002;
+  margin-bottom: 20px;
+}
+
+input, select, textarea {
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
