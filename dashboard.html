@@ -1,79 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard</title>
-<link rel="stylesheet" href="styles.css" />
-<script defer src="app-core.js"></script>
-<script defer src="app-modules.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/components.css">
 </head>
-<body>
-<div class="layout">
-  <aside class="sidebar">
-    <h2 class="logo">Panel</h2>
-    <nav class="menu">
-      <a href="dashboard.html">📊 Dashboard</a>
-      <a href="usuarios.html">👤 Usuarios</a>
-      <a href="actas.html">📄 Actas</a>
-      <a href="comunicados.html">📢 Comunicados</a>
-      <a href="tiempo.html">⏱️ Tiempo</a>
-    </nav>
-  </aside>
 
-  <main class="main">
-    <header class="topbar">
-      <h1>Bienvenido</h1>
-      <button id="logoutBtn">Cerrar sesión</button>
-    </header>
+<body id="dashboardBody">
 
-    <section class="cards">
-      <div class="card">
-        <h3>Total de Usuarios</h3>
-        <p id="countUsuarios">0</p>
-      </div>
-      <div class="card">
-        <h3>Actas Registradas</h3>
-        <p id="countActas">0</p>
-      </div>
-      <div class="card">
-        <h3>Comunicados</h3>
-        <p id="countComunicados">0</p>
-      </div>
-      <div class="card">
-        <h3>Tiempo Activo</h3>
-        <p id="countTiempo">0</p>
-      </div>
-    </section>
+  <div class="sidebar">
+    <h3 id="dashName"></h3>
+    <p id="dashRole"></p>
 
-    <section class="recent">
-      <h2>Actividad Reciente</h2>
-      <ul id="actividadLista"></ul>
-    </section>
-  </main>
-</div>
+    <button class="menu-btn" onclick="goTo('tiempo')">⏱️ Tiempo</button>
+    <button class="menu-btn" onclick="goTo('comunicados')">
+      🚨 Comunicados <span id="UrgFlag" class="alert-flag"></span>
+    </button>
+    <button class="menu-btn" onclick="goTo('actas')">📄 Actas</button>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  // Leer registros de tiempo desde localStorage
-  const registros = JSON.parse(localStorage.getItem("tiempos")) || [];
+    <div id="adminPanel"></div>
 
-  // Actualizar total de registros
-  const countTiempo = document.getElementById("countTiempo");
-  if(countTiempo) countTiempo.textContent = registros.length;
+    <button class="menu-btn logout" onclick="logout()">Cerrar sesión</button>
+  </div>
 
-  // Mostrar últimas 5 actividades
-  const lista = document.getElementById("actividadLista");
-  if(lista) {
-    lista.innerHTML = "";
-    registros.slice(-5).reverse().forEach(r => {
-      const li = document.createElement("li");
-      li.textContent = `${r.fecha} ${r.hora} - ${r.usuario}: ${r.actividad} (${r.tipo})`;
-      lista.appendChild(li);
-    });
-  }
-});
-</script>
+  <div class="main">
+    <div id="viewContainer"></div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/chrono.js"></script>
+  <script src="js/comunicados.js"></script>
+  <script src="js/actas.js"></script>
+  <script src="js/app.js"></script>
 
 </body>
 </html>
