@@ -1,0 +1,14 @@
+/* Temas según rango */
+
+body.basic { --main-color: #1d5cff; }
+body.medium { --main-color: #17a500; }
+body.high { --main-color: #000000; }
+body.admin { --main-color: #111111; }
+
+.sidebar {
+  background: var(--main-color);
+}
+
+.menu-btn {
+  background: #ffffff22;
+}
